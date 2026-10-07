@@ -383,7 +383,7 @@ tbody td:first-child{min-width:9.5em}
 .scanner-tete button{background:#fff;color:#000;border:0;border-radius:10px;padding:10px 14px;min-height:44px;font-weight:700}
 .scanner-cadre{position:relative;flex:1;margin-top:12px;min-height:0;display:flex;align-items:center;justify-content:center;overflow:hidden;background:#111;border-radius:16px}
 .scanner-cadre video{width:100%;height:100%;object-fit:cover}
-.scanner-cadre::after{content:"";position:absolute;left:8%;right:8%;top:50%;height:34%;transform:translateY(-50%);border:3px solid #F5B90A;border-radius:14px;box-shadow:0 0 0 2000px rgba(0,0,0,.35)}
+.scanner-cadre::after{content:"";position:absolute;left:14%;right:14%;top:50%;height:26%;transform:translateY(-50%);border:3px solid #F5B90A;border-radius:14px;box-shadow:0 0 0 2000px rgba(0,0,0,.35)}
 .scanner-bas{margin-top:12px;display:grid;gap:10px}
 .scanner-bas p{font-size:.9375rem;line-height:1.4;min-height:2.8em}
 .scanner-bas .bouton{background:#fff;color:#000;border-color:#fff}
@@ -403,3 +403,68 @@ textarea.copie{margin-top:10px;width:100%;min-height:9em;border:1.5px solid var(
 @media (prefers-reduced-motion:no-preference){html{scroll-behavior:smooth}}
 .alerte-fiche.calme{border-color:var(--filet);color:inherit;font-weight:500}
 .tete .zone-bascule{margin-top:12px}
+
+/* ============================================================
+   Téléphone (moins de 720 px) : l'écran utile d'abord.
+   En-têtes resserrés, rien en double avec la barre du bas, tableaux lisibles sans défilement de côté.
+   ============================================================ */
+.filtres{margin-top:12px}
+.filtres summary{list-style:none;display:flex;align-items:center;justify-content:space-between;gap:10px;border:1.5px solid var(--filet);background:var(--fond);border-radius:var(--r2);padding:10px 14px;min-height:44px;font-weight:700;font-size:.875rem;cursor:pointer}
+.filtres summary::-webkit-details-marker{display:none}
+.filtres summary::after{content:"+";font-size:1.25rem;line-height:1;color:var(--encre2)}
+.filtres[open] summary::after{content:"−"}
+@media (min-width:720px){.filtres summary{display:none}.filtres{margin-top:0}}
+@media (max-width:719px){
+  .ge{display:none!important}
+  .etat:empty{display:none}
+  /* Accueil */
+  .ouverture{padding:14px 16px}
+  .ouverture .surtitre,.ouverture .chapo{display:none}
+  .ouverture h1{font-size:1.375rem;margin-top:0}
+  .ouverture .zone-bascule{margin-top:10px;gap:6px 10px}
+  .entrees{gap:8px;margin-top:8px}
+  .entree{padding:12px 14px}
+  .entree h2{font-size:1rem}
+  .entree>p:not(.etat){display:none}
+  .entree .champ{margin-top:8px}
+  .rp .actions{display:none}
+  /* En-têtes de fiche */
+  .tete{padding:10px 14px 14px}
+  .tete .surtitre{display:none}
+  .tete h1{font-size:1.5rem;margin-top:0}
+  .tete .sous{font-size:.875rem;line-height:1.4;margin-top:4px}
+  .tete .zone-bascule{margin-top:10px}
+  .tete .actions{margin-top:10px;gap:6px}
+  .tete .actions .bouton{min-height:40px;padding:8px 12px;font-size:.8125rem}
+  .produit{grid-template-columns:64px minmax(0,1fr);gap:12px;margin-top:4px}
+  .vignette.grand{width:64px;height:64px;border-radius:10px}
+  .vignette.grand img{max-width:56px;max-height:56px}
+  .produit-nom h1{font-size:1.25rem}
+  .produit-nom>span{margin-top:4px;font-size:.75rem}
+  /* Fiche produit : le rayon de comparaison tient sur une ligne qui défile, les repères suivent aussitôt */
+  .compare{padding:12px 0 12px 14px!important}
+  .compare h2{font-size:.8125rem;font-weight:600;color:var(--encre2);letter-spacing:0}
+  .compare .zone-bascule{margin-top:10px;padding-right:14px}
+  .puces.file{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;margin-top:8px;padding-right:14px}
+  .puces.file::-webkit-scrollbar{display:none}
+  .puces.file .puce{flex:none}
+  .faits{gap:8px;margin-top:8px}
+  .faits div{padding:10px 12px}
+  .faits dd{font-size:1.25rem;margin-top:4px}
+  /* Références : la liste d'abord, la carte ensuite */
+  .explorer{display:flex;flex-direction:column}
+  .explorer .carte-zone{order:5;margin-top:20px}
+  .explorer .legende{order:6}
+  /* Relevé : une carte par produit */
+  .releve-table thead{display:none}
+  .releve-table,.releve-table tbody,.releve-table td{display:block}
+  .releve-table tr{position:relative;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px 12px;padding:14px 0;border-top:1px solid var(--filet)}
+  .releve-table tbody tr:first-child{border-top:0;padding-top:0}
+  .releve-table td{border:0;padding:0;text-align:left;white-space:normal;min-width:0}
+  .releve-table td.n{text-align:left;padding:0;font-weight:700}
+  .releve-table td:first-child{grid-column:1/-1;min-width:0;padding-right:44px}
+  .releve-table td[data-l]::before{content:attr(data-l);display:block;font-size:.6875rem;line-height:1.3;font-weight:600;color:var(--encre2)}
+  .releve-table td[data-l="Rayon"],.releve-table td[data-l="Promesses"]{grid-column:1/-1}
+  .releve-table td:last-child{position:absolute;top:8px;right:0}
+  .releve-table tbody tr:first-child td:last-child{top:-6px}
+}

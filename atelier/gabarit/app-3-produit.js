@@ -132,7 +132,7 @@ async function voirProduit() {
   const fabriqueTete = () => `<div class="tete">${r ? filAriane(r, true) : `<nav class="fil"><button type="button" data-vue="accueil">Rayons</button></nav>`}
     <p class="surtitre">Fiche de positionnement</p>
     <div class="produit">${vignette(x, true)}<div class="produit-nom">${x.m && plat(x.m) !== plat(x.titre) ? `<b>${esc(x.m)}${x.g >= 0 && B.groupes[x.g][0] !== x.m ? `<span class="discret" style="font-weight:400"> · ${esc(B.groupes[x.g][0])}</span>` : ""}${x.mdd ? `<span class="etiq mdd">MDD</span>` : ""}</b>` : ""}<h1 tabindex="-1">${esc(x.titre)}</h1><span>${x.q ? esc(x.q) + " · " : ""}Code-barres ${esc(x.c)}${x.direct ? " · fiche lue en direct" : ""}</span></div></div>
-    <div class="actions"><button type="button" class="bouton jaune" id="p-releve" aria-pressed="${dansReleve(x.c)}">${dansReleve(x.c) ? "Retirer du relevé" : "Ajouter au relevé"}</button><button type="button" class="bouton" data-scan>Scanner un autre</button><a class="bouton" href="https://fr.openfoodfacts.org/produit/${encodeURIComponent(x.c)}" target="_blank" rel="noopener">Fiche source</a></div></div>
+    <div class="actions"><button type="button" class="bouton jaune" id="p-releve" aria-pressed="${dansReleve(x.c)}">${dansReleve(x.c) ? "Retirer du relevé" : "Ajouter au relevé"}</button><button type="button" class="bouton ge" data-scan>Scanner un autre</button><a class="bouton" href="https://fr.openfoodfacts.org/produit/${encodeURIComponent(x.c)}" target="_blank" rel="noopener">Fiche source</a></div></div>
     ${!x.act && !x.horsBase ? `<p class="alerte-fiche calme">Aucun scan en ${B.meta.annee} sur Open Food Facts : ce produit n'est peut-être plus en rayon. Il ne compte pas dans les références actives.</p>` : ""}
     ${x.bad ? `<p class="alerte-fiche">Fiche à vérifier : ses valeurs nutritionnelles ne sont pas cohérentes entre elles. Elle n'entre pas dans les repères du rayon, et les positions ci-dessous sont à prendre avec réserve.</p>` : ""}`;
   const pr = M.promesses(x, x.cl), dr = M.droits(x, x.cl), args = M.ARGUMENTS.filter((a, i) => x.ar & (1 << i));
@@ -156,8 +156,8 @@ async function voirProduit() {
   const v = voisins(x, prods, S);
   const P_ = (nom, html) => `<div class="panneau" data-panneau="${nom}">${html}</div>`;
   el.innerHTML = fabriqueTete()
-    + `<section><h2>Comparé au rayon</h2><div class="puces" role="group" aria-label="Rayon de comparaison">${choix.map(i => `<button type="button" class="puce" data-rayon-produit="${i}" aria-pressed="${i === r.i}">${esc(R[i].nom)} <span>${nb(R[i].n)}</span></button>`).join("")}</div>
-      <div class="zone-bascule">${bascule()}<p>${repli ? `Trop peu de références actives dans ce rayon (${nb(r.n)}) : repères calculés sur ses ${nb(S.n)} fiches.` : base === "act" ? `Repères calculés sur les références actives du rayon.` : "Repères calculés sur toutes les fiches du rayon."}</p></div></section>`
+    + `<section class="compare"><h2>Comparé au rayon</h2><div class="puces file" role="group" aria-label="Rayon de comparaison">${choix.map(i => `<button type="button" class="puce" data-rayon-produit="${i}" aria-pressed="${i === r.i}">${esc(R[i].nom)} <span>${nb(R[i].n)}</span></button>`).join("")}</div>
+      <div class="zone-bascule">${bascule()}<p class="${repli ? "repli" : "ge"}">${repli ? `Trop peu de références actives dans ce rayon (${nb(r.n)}) : repères calculés sur ses ${nb(S.n)} fiches.` : base === "act" ? `Repères calculés sur les références actives du rayon.` : "Repères calculés sur toutes les fiches du rayon."}</p></div></section>`
     + faits + segments([["position", "Position"], ["pack", "Pack"], ["voisins", "Voisins"]], ongletProduit, true)
     + P_("position", `<section aria-labelledby="t-pos"><h2 id="t-pos">Sa position dans le rayon ${esc(r.nom)}</h2>
       <p class="intro">Face aux ${base === "act" && !repli ? `${nb(S.n)} références actives` : `${nb(S.n)} fiches`} du rayon, valeurs pour ${x.liq ? "100 ml" : "100 g"}.</p>
@@ -172,6 +172,7 @@ async function voirProduit() {
       <div class="actions"><button type="button" class="bouton" data-rayon-fiche="${r.i}">Ouvrir la fiche du rayon ${esc(r.nom)}</button></div></section>`)
     + `<p class="note">${x.direct ? "Fiche lue en direct ; repères du rayon" : "Fiche et repères"} : Open Food Facts, état de la base au ${DATE}. Fiches saisies par des bénévoles, une valeur peut être fausse ou datée.</p>`;
   ongletProduit = choisirOnglet(el, ongletProduit, true);
+  { const file = $(".puces.file", el), choisi = file && $("[aria-pressed=true]", file); if (choisi && file.scrollWidth > file.clientWidth) file.scrollLeft = Math.max(0, choisi.offsetLeft - file.offsetLeft - 24); }   // téléphone : le rayon choisi reste visible dans la file
   nuage($("#p-carte"), prods, "s", "pp", () => true, x);
   ctx = { r, S, lot, prods, par, Spar: null }; courant.r = r.i;
   const t = $("h1", el); if (t) t.focus({ preventScroll: true });
@@ -184,12 +185,12 @@ function voirReleve() {
   if (!releve.length) { el.innerHTML = tete(`<p class="sous">Ajoutez des produits depuis leur fiche pour les comparer ici côte à côte, puis exportez le tableau. Pratique pour un tour de magasin : un scan, un ajout, et le relevé se remplit.</p><div class="actions"><button type="button" class="bouton jaune" data-scan>Scanner un premier produit</button><button type="button" class="bouton" data-vue="produit">Chercher un produit</button></div>`); return; }
   const L = releve.map(e => ({ x: retenir(P(e.l)), r: e.r != null && R[e.r] ? R[e.r] : null }));
   const lignes = L.map(({ x, r }) => `<tr><td><button type="button" class="lien" data-code="${esc(x.c)}"${r ? ` data-rayon="${r.i}"` : ""}>${esc(x.titre)}</button><span class="cellule-pos">${esc(x.m || "Marque non renseignée")}${x.q ? " · " + esc(x.q) : ""}</span></td>
-    <td>${r ? esc(r.nom) : "<span class=\"discret\">Aucun</span>"}</td>
-    ${["k", "s", "f", "se", "pp"].map(c => `<td class="n">${x[c] == null ? "n. d." : nb(x[c], MET[c].d)}${r ? `<span class="cellule-pos" data-pos="${esc(x.c)}|${r.i}|${c}"></span>` : ""}</td>`).join("")}
-    <td>${badgeNS(x.ns)}</td><td>${M.promesses(x, x.cl).map(c => `<span class="pastille-etat ${c.etat}" title="${esc(c.nom)} : ${M.ETATS[c.etat]}">${esc(c.nom)}</span>`).join(" ") || `<span class="discret">Aucune</span>`}</td>
+    <td data-l="Rayon">${r ? esc(r.nom) : "<span class=\"discret\">Aucun</span>"}</td>
+    ${["k", "s", "f", "se", "pp"].map(c => `<td class="n" data-l="${{ k: "kcal", s: "Sucres (g)", f: "Mat. grasses (g)", se: "Sel (g)", pp: "Prot. / calories (%)" }[c]}">${x[c] == null ? "n. d." : nb(x[c], MET[c].d)}${r ? `<span class="cellule-pos" data-pos="${esc(x.c)}|${r.i}|${c}"></span>` : ""}</td>`).join("")}
+    <td data-l="Nutri-Score">${badgeNS(x.ns)}</td><td data-l="Promesses">${M.promesses(x, x.cl).map(c => `<span class="pastille-etat ${c.etat}" title="${esc(c.nom)} : ${M.ETATS[c.etat]}">${esc(c.nom)}</span>`).join(" ") || `<span class="discret">Aucune</span>`}</td>
     <td><button type="button" class="retirer" data-retirer="${esc(x.c)}" aria-label="Retirer ${esc(x.titre)} du relevé">×</button></td></tr>`).join("");
   el.innerHTML = tete(`<p class="sous">${pluriel(L.length, "produit relevé", "produits relevés")}. Sous chaque valeur, la part de son rayon que le produit dépasse${base === "act" ? ", parmi les références actives" : ""}.</p>
-    <div class="actions"><button type="button" class="bouton jaune" id="rl-csv">Exporter (CSV)</button><button type="button" class="bouton" data-scan>Scanner un produit</button><button type="button" class="bouton" id="rl-vider">Vider le relevé</button></div><div id="rl-retour" role="status"></div>`)
+    <div class="actions"><button type="button" class="bouton jaune" id="rl-csv">Exporter (CSV)</button><button type="button" class="bouton ge" data-scan>Scanner un produit</button><button type="button" class="bouton" id="rl-vider">Vider le relevé</button></div><div id="rl-retour" role="status"></div>`)
     + `<section><div class="table-zone" style="margin-top:0"><table class="releve-table"><thead><tr><th>Produit</th><th>Rayon</th><th class="n">kcal</th><th class="n">Sucres (g)</th><th class="n">Mat. grasses (g)</th><th class="n">Sel (g)</th><th class="n">Protéines / calories (%)</th><th>Nutri-Score</th><th>Promesses</th><th></th></tr></thead><tbody>${lignes}</tbody></table></div>
     <p class="note">Le relevé est gardé dans ce navigateur, sur cet appareil. Valeurs pour 100 g ou 100 ml.</p></section>`;
   // Positions dans le rayon, une fois les repères chargés
@@ -224,40 +225,87 @@ const nomFichier = s => plat(s).replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, ""
 /* ---------- Scanner ---------- */
 let flux = null, lecture = false, dernier = null;
 function scanEtat(t) { $("#scan-etat").textContent = t; }
+/* Lecture en direct. Un téléphone ne fait pas la mise au point de très près : il faut pouvoir lire un code tenu à une vingtaine
+   de centimètres, donc petit dans l'image. On demande l'image la plus fine possible, on zoome si l'appareil le permet, et on ne lit
+   que la zone du cadre, à pleine définition. */
+const CADRE = { l: .72, h: .26 };     // part de la largeur et de la hauteur de l'image occupée par le cadre jaune (voir .scanner-cadre::after)
 async function ouvrirScanner() {
   $("#scanner").hidden = false; dernier = null; $("#scan-photo").value = "";
   scanEtat("Autorisez l'appareil photo, puis placez le code-barres dans le cadre."); $("#scan-fermer").focus();
   const repli = "L'appareil photo en direct n'est pas disponible ici. Prenez le code-barres en photo avec le bouton ci-dessous, ou fermez et tapez ses chiffres.";
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return scanEtat(repli);
-  try { flux = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: "environment" }, width: { ideal: 1280 }, height: { ideal: 720 } }, audio: false }); }
+  try { flux = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: "environment" }, width: { ideal: 3840 }, height: { ideal: 2160 } }, audio: false }); }
   catch (e) { return scanEtat(repli); }
   if ($("#scanner").hidden) { arreterFlux(); return; }
+  try { const piste = flux.getVideoTracks()[0], cap = piste.getCapabilities ? piste.getCapabilities() : {}, plus = {};
+    if (cap.zoom && cap.zoom.max >= 1.5) plus.zoom = Math.max(cap.zoom.min || 1, Math.min(cap.zoom.max, 2));
+    if (cap.focusMode && cap.focusMode.indexOf("continuous") >= 0) plus.focusMode = "continuous";
+    if (Object.keys(plus).length) await piste.applyConstraints({ advanced: [plus] });
+  } catch (e) { /* réglages fins indisponibles : la lecture marche sans */ }
   const video = $("#video"); video.srcObject = flux; try { await video.play(); } catch (e) { /* lecture différée */ }
-  lecture = true; scanEtat("Placez le code-barres dans le cadre.");
-  const det = await detecteurNatif(); if (det) return boucleNative(det, video);
-  boucleQuagga(video);
+  lecture = true; scanEtat("Code-barres dans le cadre, téléphone à une vingtaine de centimètres.");
+  boucleLecture(video, await detecteurNatif());
 }
 async function detecteurNatif() {
   if (!("BarcodeDetector" in window)) return null;
   try { const f = await BarcodeDetector.getSupportedFormats(), voulus = ["ean_13", "ean_8", "upc_a"].filter(x => f.includes(x)); return voulus.length ? new BarcodeDetector({ formats: voulus }) : null; } catch (e) { return null; }
 }
-function boucleNative(det, video) {
-  const tour = async () => { if (!lecture) return; try { const r = await det.detect(video); if (r.length && eanValide(r[0].rawValue)) return trouve(r[0].rawValue); } catch (e) { /* image pas prête */ } setTimeout(tour, 180); };
-  tour();
-}
-function quaggaImage(src, taille, grain) {
+function quaggaImage(src, taille, grain, opt) {
   return new Promise(res => { if (typeof Quagga === "undefined") return res(null);
-    Quagga.decodeSingle({ src, numOfWorkers: 0, locate: true, locator: { patchSize: grain || "medium", halfSample: true }, inputStream: { size: taille }, decoder: { readers: ["ean_reader", "ean_8_reader", "upc_reader"] } }, r => res(r && r.codeResult && r.codeResult.code || null)); });
+    Quagga.decodeSingle({ src, numOfWorkers: 0, locate: !(opt && opt.sansLocaliser), locator: { patchSize: grain || "medium", halfSample: !(opt && opt.plein) }, inputStream: { size: taille }, decoder: { readers: ["ean_reader", "ean_8_reader", "upc_reader"] } }, r => res(r && r.codeResult && r.codeResult.code || null)); });
 }
-function boucleQuagga(video) {
-  if (typeof Quagga === "undefined") return scanEtat("La lecture automatique n'est pas disponible sur ce navigateur. Prenez le code-barres en photo, ou tapez ses chiffres.");
-  const toile = document.createElement("canvas"), c2 = toile.getContext("2d");
+// La partie de l'image vidéo qui se trouve sous le cadre jaune (la vidéo est affichée rognée, object-fit: cover), avec une petite marge.
+function zoneCadre(video) {
+  const vw = video.videoWidth, vh = video.videoHeight, cw = video.clientWidth || vw, ch = video.clientHeight || vh;
+  const k = Math.max(cw / vw, ch / vh), ox = (vw * k - cw) / 2, oy = (vh * k - ch) / 2, gw = cw * CADRE.l, gh = ch * CADRE.h, m = gw * .07;
+  const x = Math.max(0, ((cw - gw) / 2 - m + ox) / k), y = Math.max(0, ((ch - gh) / 2 - m + oy) / k);
+  return { x, y, w: Math.min(vw - x, (gw + 2 * m) / k), h: Math.min(vh - y, (gh + 2 * m) / k) };
+}
+// Image en gris, contraste étiré, barres accentuées : un code petit ou un peu flou devient lisible.
+function nettoyer(c) {
+  const x = c.getContext("2d"), d = x.getImageData(0, 0, c.width, c.height), a = d.data, n = c.width * c.height, W = c.width, g = new Float32Array(n), h = new Uint32Array(256);
+  for (let i = 0, j = 0; i < n; i++, j += 4) { const v = (a[j] * 77 + a[j + 1] * 150 + a[j + 2] * 29) >> 8; g[i] = v; h[v]++; }
+  let bas = 0, haut = 255, s = 0; for (let v = 0; v < 256; v++) { s += h[v]; if (s > n * .02) { bas = v; break; } } s = 0; for (let v = 255; v >= 0; v--) { s += h[v]; if (s > n * .02) { haut = v; break; } }
+  const k = 255 / Math.max(1, haut - bas);
+  for (let i = 0, j = 0; i < n; i++, j += 4) { const col = i % W, l = col > 0 ? g[i - 1] : g[i], r = col < W - 1 ? g[i + 1] : g[i]; const v = Math.max(0, Math.min(255, (g[i] + .9 * (g[i] - (l + g[i] + r) / 3) - bas) * k)); a[j] = a[j + 1] = a[j + 2] = v; }
+  x.putImageData(d, 0, 0); return c;
+}
+// Lit le code dans la zone du cadre : plusieurs bandes horizontales lues tout droit, puis une recherche dans toute la zone.
+// Rend [code, nombre de lectures concordantes] ou null.
+async function lireCadre(c, det) {
+  if (det) { try { const r = await det.detect(c); if (r.length && eanValide(r[0].rawValue)) return [r[0].rawValue, 3]; } catch (e) { /* image pas prête */ } return null; }
+  nettoyer(c); const vus = new Map(), b = document.createElement("canvas"), bx = b.getContext("2d"); b.width = c.width; b.height = Math.max(24, Math.round(c.height * .14));
+  for (const y of [.43, .30, .56, .36, .50]) {
+    bx.drawImage(c, 0, Math.round(c.height * y), c.width, b.height, 0, 0, b.width, b.height);
+    const r = await quaggaImage(b.toDataURL("image/jpeg", .92), b.width, "medium", { sansLocaliser: true, plein: true });
+    if (r && eanValide(r)) { vus.set(r, (vus.get(r) || 0) + 1); if (vus.get(r) >= 3) return [r, 3]; }
+  }
+  const r = await quaggaImage(c.toDataURL("image/jpeg", .92), Math.max(c.width, c.height), "medium", { plein: true });
+  if (r && eanValide(r)) vus.set(r, (vus.get(r) || 0) + 1);
+  let mieux = null; vus.forEach((n, code) => { if (!mieux || n > mieux[1]) mieux = [code, n]; });
+  return mieux;
+}
+// Un code est accepté s'il est lu trois fois dans la même image, ou dans deux images à moins de trois secondes d'écart.
+function boucleLecture(video, det) {
+  if (!det && typeof Quagga === "undefined") return scanEtat("La lecture automatique n'est pas disponible sur ce navigateur. Prenez le code-barres en photo, ou tapez ses chiffres.");
+  const toile = document.createElement("canvas"), c2 = toile.getContext("2d", { willReadFrequently: true }), vus = new Map(), debut = Date.now(); let conseil = false, tours = 0;
   const tour = async () => {
     if (!lecture) return; const w = video.videoWidth, h = video.videoHeight; if (!w || !h) return setTimeout(tour, 200);
-    const k = Math.min(1, 960 / w); toile.width = Math.round(w * k); toile.height = Math.round(h * k); c2.drawImage(video, 0, 0, toile.width, toile.height);
-    const code = await quaggaImage(toile.toDataURL("image/jpeg", .85), toile.width); if (!lecture) return;
-    if (code && eanValide(code)) { if (code === dernier) return trouve(code); dernier = code; }
-    setTimeout(tour, 120);
+    let lu = null;
+    try {
+      if (++tours % 3) {            // deux images sur trois : la zone du cadre, à pleine définition
+        const z = zoneCadre(video), k = Math.min(1, 1400 / z.w); toile.width = Math.max(8, Math.round(z.w * k)); toile.height = Math.max(8, Math.round(z.h * k));
+        c2.drawImage(video, z.x, z.y, z.w, z.h, 0, 0, toile.width, toile.height); lu = await lireCadre(toile, det);
+      } else {                      // une sur trois : l'image entière, pour un code plus grand que le cadre ou tenu à côté
+        const k = Math.min(1, 1280 / Math.max(w, h)); toile.width = Math.round(w * k); toile.height = Math.round(h * k); c2.drawImage(video, 0, 0, toile.width, toile.height);
+        if (det) lu = await lireCadre(toile, det);
+        else { const r = await quaggaImage(toile.toDataURL("image/jpeg", .88), Math.max(toile.width, toile.height)); if (r && eanValide(r)) lu = [r, 1]; }
+      }
+    } catch (e) { lu = null; }
+    if (!lecture) return;
+    if (lu) { const t = Date.now(), avant = vus.get(lu[0]); if (lu[1] >= 3 || (avant && t - avant < 3000)) return trouve(lu[0]); vus.set(lu[0], t); }
+    if (!conseil && Date.now() - debut > 8000) { conseil = true; scanEtat("Pas encore lu. Reculez un peu le téléphone pour que le code soit net, évitez les reflets, ou prenez-le en photo."); }
+    setTimeout(tour, det ? 150 : 50);
   };
   tour();
 }

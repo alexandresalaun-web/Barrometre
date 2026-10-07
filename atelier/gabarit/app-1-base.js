@@ -15,6 +15,7 @@ const $ = (s, e) => (e || document).querySelector(s), $$ = (s, e) => Array.from(
 const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const I = " ";
 const pc = (v, d) => { if (v == null) return "n.\u00a0d."; d = d == null ? 0 : d; const bas = Math.pow(10, -d); return (v > 0 && v < bas / 2 ? "<" + I + nb(bas, d) : nb(v, d)) + I + "%"; };
+const GRAND = () => !window.matchMedia || window.matchMedia("(min-width:720px)").matches;   // au-dessous : mise en page téléphone
 const pluriel = (n, un, des) => nb(n) + I + (n > 1 ? des : un);
 const MOIS = ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre"];
 const dateFr = iso => { const [a, m, j] = iso.split("-").map(Number); return (j === 1 ? "1er" : j) + " " + MOIS[m - 1] + " " + a; };

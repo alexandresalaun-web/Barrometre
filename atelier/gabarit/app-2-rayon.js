@@ -10,8 +10,8 @@ function filAriane(r, fin) {
 function teteRayon(r, suite) {
   return `<div class="tete">${filAriane(r)}<p class="surtitre">Fiche de rayon</p><h1 tabindex="-1">${esc(r.nom)}</h1>
     <p class="sous">${base === "act"
-      ? `<strong>${pluriel(r.n, "référence active", "références actives")}</strong>${r.dispo ? ` de <strong>${pluriel(r.nmq, "marque", "marques")}</strong>` : ""}, sur ${pluriel(r.nTout, "fiche recensée", "fiches recensées")}. Open Food Facts au ${DATE}.`
-      : `<strong>${pluriel(r.n, "fiche", "fiches")}</strong> de <strong>${pluriel(r.nmq, "marque", "marques")}</strong> vendues en France, produits arrêtés compris. Open Food Facts au ${DATE}.`}</p>
+      ? `<strong>${pluriel(r.n, "référence active", "références actives")}</strong>${r.dispo ? ` de <strong>${pluriel(r.nmq, "marque", "marques")}</strong>` : ""}, sur ${pluriel(r.nTout, "fiche recensée", "fiches recensées")}.<span class="ge"> Open Food Facts au ${DATE}.</span>`
+      : `<strong>${pluriel(r.n, "fiche", "fiches")}</strong> de <strong>${pluriel(r.nmq, "marque", "marques")}</strong> <span class="ge">vendues en France, </span>produits arrêtés compris.<span class="ge"> Open Food Facts au ${DATE}.</span>`}</p>
     <div class="zone-bascule">${bascule()}</div>${suite || ""}</div>`;
 }
 let ongletRayon = "resume";
@@ -56,7 +56,7 @@ function htmlFabs(S, mode) {
 function blocOccupation(r, S) {
   const top3 = S.fab.slice(0, 3).reduce((s, f) => s + f[1], 0), pMdd = S.nm ? S.mdd[0] / S.nm * 100 : 0;
   const lignes = S.mq.map((b, i) => `<tr><td>${i + 1}. <button type="button" class="lien" data-marque="${esc(b[0])}">${esc(b[0])}</button>${b[3] >= 0 && B.groupes[b[3]][0] !== b[0] ? `<span class="discret"> · ${esc(B.groupes[b[3]][0])}</span>` : ""}${b[3] >= 0 && B.groupes[b[3]][1] === 2 ? `<span class="etiq mdd">MDD</span>` : ""}</td>
-    <td class="n">${nb(b[1])}</td><td class="n">${pc(b[1] / S.nm * 100, 1)}</td><td class="n">${S.scm ? pc(b[2] / S.scm * 100, 1) : "n. d."}</td><td class="n">${b[4] == null ? "n. d." : nb(b[4], 1) + I + "g"}</td><td class="n">${b[5] == null ? "n. d." : pc(b[5])}</td></tr>`).join("");
+    <td class="n">${nb(b[1])}</td><td class="n">${pc(b[1] / S.nm * 100, 1)}</td><td class="n ge">${S.scm ? pc(b[2] / S.scm * 100, 1) : "n. d."}</td><td class="n ge">${b[4] == null ? "n. d." : nb(b[4], 1) + I + "g"}</td><td class="n ge">${b[5] == null ? "n. d." : pc(b[5])}</td></tr>`).join("");
   return `<section aria-labelledby="t-occ"><h2 id="t-occ">Qui occupe le rayon</h2>
     <p class="intro"><strong>${pluriel(S.nmq, "marque", "marques")}</strong> pour ${nb(S.nm)} références de marque connue. Les trois premiers fabricants en réunissent <strong>${pc(S.nm ? top3 / S.nm * 100 : 0)}</strong>.</p>
     <div class="duo"><div>
@@ -72,7 +72,7 @@ function blocOccupation(r, S) {
       ${r.par >= 0 && R[r.par].mdd != null ? `<p class="note">Dans ${esc(R[r.par].nom)}, les MDD pèsent ${pc(R[r.par].mdd, 1)}.</p>` : ""}
     </div></div>
     <h3 style="margin-top:28px">Les quinze premières marques</h3>
-    <div class="table-zone"><table><thead><tr><th>Marque</th><th class="n">Références</th><th class="n">Part</th><th class="n">Part des scans</th><th class="n">Sucres médians</th><th class="n">Nutri-Score A ou B</th></tr></thead><tbody>${lignes}</tbody></table></div>
+    <div class="table-zone"><table><thead><tr><th>Marque</th><th class="n">Références</th><th class="n">Part</th><th class="n ge">Part des scans</th><th class="n ge">Sucres médians</th><th class="n ge">Nutri-Score A ou B</th></tr></thead><tbody>${lignes}</tbody></table></div>
     <p class="note">Cliquez sur une marque pour voir ses références parmi les plus scannées du rayon.</p></section>`;
 }
 
@@ -156,15 +156,16 @@ function filtres() {
 function blocExplorer(r, S, prods) {
   const marques = [...new Set(prods.map(x => x.m).filter(Boolean))].sort((a, b) => a.localeCompare(b, "fr"));
   const axes = c => ORDRE_BANDES.map(k => `<option value="${k}"${k === c ? " selected" : ""}>${MET[k].court}</option>`).join("");
-  return `<section aria-labelledby="t-expl"><h2 id="t-expl">Explorer les références</h2>
-    <p class="intro">${prods.length < S.n ? `Les ${nb(prods.length)} références les plus scannées du rayon, sur ${nb(S.n)}.` : `Les ${nb(prods.length)} références du rayon.`} Cliquez sur un point ou une ligne pour ouvrir la fiche du produit.</p>
+  return `<section class="explorer" aria-labelledby="t-expl"><h2 id="t-expl">Explorer les références</h2>
+    <p class="intro">${prods.length < S.n ? `Les ${nb(prods.length)} références les plus scannées du rayon, sur ${nb(S.n)}.` : `Les ${nb(prods.length)} références du rayon.`} Touchez une ligne ou un point pour ouvrir la fiche du produit.</p>
+    <details class="filtres"${GRAND() ? " open" : ""}><summary>Filtrer, trier, changer les axes</summary>
     <div class="reglages">
       <label class="large">Nom ou marque<input type="search" id="x-q" placeholder="Filtrer" autocomplete="off"></label>
       <label>Marque<select id="x-marque"><option value="">Toutes</option>${marques.map(m => `<option>${esc(m)}</option>`).join("")}</select></label>
       <label>Argument<select id="x-pos"><option value="">Tous</option>${M.POSITIONS.map((p, i) => S.pos[i] ? `<option value="${i}">${esc(p.nom)}</option>` : "").join("")}</select></label>
       <label>Tri<select id="x-tri"><option value="sc">Les plus scannés</option><option value="s">Les moins sucrés</option><option value="pp">Les plus protéinés</option><option value="k">Les moins caloriques</option><option value="se">Les moins salés</option><option value="ym">Les plus récents</option></select></label>
     </div>
-    <div class="reglages"><label>Axe horizontal<select id="x-x">${axes(expl.x)}</select></label><label>Axe vertical<select id="x-y">${axes(expl.y)}</select></label></div>
+    <div class="reglages"><label>Axe horizontal<select id="x-x">${axes(expl.x)}</select></label><label>Axe vertical<select id="x-y">${axes(expl.y)}</select></label></div></details>
     <div class="carte-zone" id="x-carte"></div>
     <ul class="legende"><li><i class="l-pt bleu"></i>Met la protéine en avant</li><li><i class="l-pt"></i>Les autres</li></ul>
     <p class="compte" id="x-compte" role="status"></p>
@@ -232,7 +233,7 @@ async function voirRayon(r) {
   const S = statsDe(lot, r.i), Spar = lotPar && par ? statsDe(lotPar, par.i) : null, prods = S.top.map(k => retenir(P(lot.p[k])));
   ctx = { r, S, lot, prods, par, Spar };
   Object.assign(expl, { q: "", marque: "", pos: "", tri: "sc", vus: 20 });
-  const actions = `<div class="actions"><button type="button" class="bouton jaune" data-scan>Scanner un produit</button><button type="button" class="bouton" id="a-csv">Exporter (CSV)</button><button type="button" class="bouton" id="a-synthese">Copier la synthèse</button></div><div id="a-retour" role="status"></div>`;
+  const actions = `<div class="actions"><button type="button" class="bouton jaune ge" data-scan>Scanner un produit</button><button type="button" class="bouton" id="a-csv">Exporter (CSV)</button><button type="button" class="bouton" id="a-synthese">Copier la synthèse</button></div><div id="a-retour" role="status"></div>`;
   const P_ = (nom, html) => `<div class="panneau" data-panneau="${nom}">${html}</div>`;
   el.innerHTML = teteRayon(r, actions) + segments(ONGLETS_RAYON, ongletRayon, true)
     + P_("resume", constats(r, S) + blocSousRayons(r) + `<p class="note">Fiches saisies par des bénévoles : une valeur peut être fausse ou datée. L'outil compte des références, pas des ventes. ${base === "act" ? `Repères calculés sur les références actives : scannées en ${B.meta.annee} ou créées depuis.` : "Repères calculés sur toutes les fiches, produits arrêtés compris."} <button type="button" class="lien" data-vue="methode">Lire la méthode</button></p>`)
