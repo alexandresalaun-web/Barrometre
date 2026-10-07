@@ -5,3 +5,4 @@ Chaque ligne est une publication réussie. Une mise à jour dont les contrôles 
 | Fabriqué le | Base au | Fiches | Références actives | Rayons | Année de scans |
 |---|---|---|---|---|---|
 | 2026-10-07 | 2026-10-07 | 504 238 | 171 490 | 2 475 | 2025 |
+| 2026-10-07 | 2026-10-07 | 504 238 | 171 490 | 2 475 | 2025 |
