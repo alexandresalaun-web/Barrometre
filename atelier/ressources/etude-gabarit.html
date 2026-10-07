@@ -1,0 +1,807 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Le Barromètre : le rayon barres chocolatées passé au scanner</title>
+<style>
+/*__POLICES__*/
+:root{
+  --page:#FFFFFF; --encre:#000000; --encre2:#4A4A4A; --filet:#DADADA; --panneau:#F4F4F2;
+  --bleu-texte:#1B3FA8;
+  /* Objets du rayon : mêmes couleurs en clair et en sombre, comme de vraies étiquettes */
+  --jaune:#F2C230; --jaune-pale:#FCEFC2; --rouge:#C8102E; --bleu:#1B3FA8; --etagere:#F4F4F2;
+  --ns-a:#038141; --ns-b:#85BB2F; --ns-c:#FECB02; --ns-d:#EE8100; --ns-e:#E63E11;
+  --titre:"Source Serif 4",Georgia,"Times New Roman",serif;
+  --texte:"Libre Franklin","Helvetica Neue",Arial,system-ui,sans-serif;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){ --page:#000000; --encre:#FFFFFF; --encre2:#BDBDBD; --filet:#3A3A3A; --panneau:#161616; --bleu-texte:#9DB0FF; }
+}
+:root[data-theme="dark"]{ --page:#000000; --encre:#FFFFFF; --encre2:#BDBDBD; --filet:#3A3A3A; --panneau:#161616; --bleu-texte:#9DB0FF; }
+
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;scroll-padding-top:env(safe-area-inset-top,0px);background:var(--page)}
+body{margin:0;font-optical-sizing:auto;background:var(--page);color:var(--encre);font:400 17px/1.5 var(--texte)}
+h1,h2,h3,p,ul,ol,dl,dd,figure{margin:0}
+ul,ol{padding:0;list-style:none}
+img{max-width:100%}
+button,select{font:inherit;color:inherit}
+a{color:var(--bleu-texte);text-underline-offset:3px}
+:focus-visible{outline:3px solid var(--bleu-texte);outline-offset:3px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.bloc{max-width:1180px;margin:0 auto;padding-left:16px;padding-right:16px}
+@media (min-width:760px){.bloc{padding-left:32px;padding-right:32px}}
+
+/* ---------- Bandeau et affiche d'ouverture ---------- */
+.bandeau{background:#000;color:#fff}
+.bandeau .bloc{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:52px}
+.logo{font:600 1.5rem/1.04 var(--titre);white-space:nowrap;flex:none}
+.logo i{font-style:normal;color:var(--jaune)}
+.bandeau small{font-size:.8125rem;text-align:right;line-height:1.25;color:#D6D8DC}
+
+.affiche{background:var(--jaune);color:#000;padding-top:26px;overflow:hidden}
+h1{font:600 clamp(2.5rem,10.6vw,5.75rem)/1.02 var(--titre);max-width:13em}
+.chapo{margin-top:16px;font-size:1.125rem;line-height:1.4;max-width:44ch;font-weight:600}
+.vitrine{margin-top:26px;background:var(--etagere);border:1px solid #000;border-bottom:0;border-radius:0;overflow:hidden}
+.vitrine-titre{padding:10px 14px 0;font:700 1.0625rem/1.1 var(--texte);}
+.defile{display:flex;overflow-x:auto;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch}
+.pose{flex:1 0 136px;scroll-snap-align:start;display:flex;flex-direction:column;background:none;border:0;padding:0;text-align:left;cursor:pointer;color:#000;min-width:0}
+.pose-photo{height:132px;display:flex;align-items:flex-end;justify-content:center;padding:12px 10px 0}
+.pose-photo img,.carte-photo img,.fiche-photo img{mix-blend-mode:multiply;display:block;object-fit:contain}
+.pose-photo img{max-height:118px}
+.rail{height:11px;background:#000;border-top:1px solid #000;flex:none}
+.pose-tag{background:#fff;border-right:1px solid var(--filet);padding:8px 10px 12px;flex:1;display:grid;gap:3px;align-content:start}
+.rang{justify-self:start;background:#000;color:var(--jaune);font:700 .812rem/1.04 var(--texte);padding:4px 7px 3px;border-radius:0;}
+.pose-tag b{font-weight:700;font-size:.9375rem;line-height:1.2}
+.pose-tag span{font-size:.8125rem;line-height:1.25;color:#44474D;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+
+/* ---------- Sections ---------- */
+section{padding-top:56px}
+h2{font:600 clamp(1.85rem,6.65vw,3.145rem)/1.04 var(--titre);max-width:16em}
+.intro{margin-top:10px;max-width:58ch;color:var(--encre2);font-size:1.0625rem}
+.intro strong{color:var(--encre);font-weight:700}
+h3{font:700 1.25rem/1.05 var(--texte);}
+
+/* ---------- Quatre étiquettes de constat ---------- */
+.constats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:-1px;padding-top:28px}
+@media (min-width:900px){.constats{grid-template-columns:repeat(4,1fr);gap:16px}}
+.constat{border:1px solid var(--encre);border-radius:0;overflow:hidden;background:var(--panneau);display:flex;flex-direction:column}
+.constat-chiffre{padding:12px 12px 8px;display:flex;align-items:flex-end;gap:6px;color:#000;background:var(--jaune);border-bottom:1px solid var(--encre)}
+.constat-chiffre b{font:600 clamp(2.6rem,10.5vw,3.9rem)/.9 var(--titre)}
+.constat-chiffre span{font:700 .925rem/1.04 var(--texte);padding-bottom:2px}
+.constat.ton-e .constat-chiffre{background:#F7BFAE}
+.constat.ton-bleu .constat-chiffre{background:#C6D1FA}
+.constat p{padding:10px 12px 12px;font-size:.9375rem;line-height:1.35}
+.constat p strong{font-weight:700}
+
+/* ---------- Qui occupe le rayon ---------- */
+.groupes{margin-top:18px;display:grid;gap:8px;max-width:760px}
+.groupe{display:grid;grid-template-columns:minmax(0,8.2em) 1fr 1.6em;gap:10px;align-items:center}
+@media (min-width:760px){.groupe{grid-template-columns:12em 1fr 1.6em}}
+.groupe span{font-weight:600;line-height:1.2}
+.groupe i{display:block;height:22px;background:var(--encre);border-radius:0;min-width:3px}
+.groupe:first-child i{background:var(--jaune);box-shadow:inset 0 0 0 2px var(--encre)}
+.groupe b{font:700 1.1875rem/1.04 var(--texte);white-space:nowrap;text-align:right}
+.lecture{margin-top:14px;max-width:58ch}
+
+.marques{margin-top:26px;display:grid;gap:18px}
+@media (min-width:900px){.marques{grid-template-columns:1fr 1fr;gap:22px 32px}}
+.marque-tete{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.marque-tete b{font:600 1.387rem/1.04 var(--titre)}
+.marque-tete span{color:var(--encre2);font-size:.9375rem}
+.mini-etagere{margin-top:6px;background:var(--etagere);border:1px solid var(--encre);border-bottom:0;border-radius:0;padding:8px 8px 0;display:flex;flex-wrap:wrap;gap:4px;align-items:flex-end}
+.mini{width:44px;height:48px;padding:0;border:0;background:none;cursor:pointer;display:flex;align-items:flex-end;justify-content:center}
+.mini img{max-width:44px;max-height:46px;mix-blend-mode:multiply;display:block;object-fit:contain}
+@media (min-width:900px){.mini{width:54px;height:58px}.mini img{max-width:54px;max-height:56px}}
+.marque .rail{border-left:1px solid var(--encre);border-right:1px solid var(--encre);border-bottom:1px solid var(--encre)}
+.sans-photo{display:flex;align-items:center;justify-content:center;background:#000;color:var(--jaune);font:700 .925rem/1.04 var(--texte);border-radius:0;width:100%;height:70%}
+
+/* ---------- Ce qu'il y a dans une barre ---------- */
+.barre-compo{margin-top:20px;display:flex;height:76px;border:1px solid var(--encre);border-radius:0;overflow:hidden;max-width:900px}
+.barre-compo div{display:flex;flex-direction:column;justify-content:center;padding:0 10px;min-width:0;border-right:1px solid var(--encre);overflow:hidden}
+.barre-compo div:last-child{border-right:0}
+.barre-compo b{font:600 1.295rem/1.04 var(--titre);white-space:nowrap}
+.barre-compo span{font-size:.8125rem;line-height:1.1;white-space:nowrap}
+.c-sucres{background:var(--jaune);color:#000}
+.c-gras{background:#000;color:#fff}
+.c-prot{background:var(--bleu);color:#fff}
+.c-reste{background:repeating-linear-gradient(135deg,var(--panneau) 0 8px,var(--page) 8px 16px);color:var(--encre)}
+.compo-legende{margin-top:10px;display:flex;flex-wrap:wrap;gap:6px 18px;font-size:.9375rem;max-width:900px}
+.compo-legende li{display:flex;align-items:center;gap:7px}
+.compo-legende i{width:16px;height:16px;border:1px solid var(--encre);flex:none}
+.duo{display:grid;gap:28px;margin-top:30px}
+@media (min-width:900px){.duo{grid-template-columns:1fr 1fr;gap:40px}}
+.ns-barre{margin-top:12px;display:flex;height:52px;border:1px solid var(--encre);border-radius:0;overflow:hidden}
+.ns-barre div{display:flex;align-items:center;justify-content:center;font:700 1.295rem/1.04 var(--texte);color:#000;min-width:0;overflow:hidden}
+.ns-barre .ns-a,.ns-barre .ns-e{color:#fff}
+.ns-a{background:var(--ns-a)} .ns-b{background:var(--ns-b)} .ns-c{background:var(--ns-c)} .ns-d{background:var(--ns-d)} .ns-e{background:var(--ns-e)}
+.ns-detail{margin-top:8px;display:flex;flex-wrap:wrap;gap:4px 14px;font-size:.9375rem;color:var(--encre2)}
+.gros-fait{margin-top:12px;display:flex;align-items:flex-end;gap:10px}
+.gros-fait b{font:600 3.33rem/0.9 var(--titre);white-space:nowrap}
+.gros-fait span{max-width:20ch;line-height:1.25;padding-bottom:2px}
+
+/* ---------- La protéine au rayon ---------- */
+.seuils{margin-top:16px;display:grid;gap:8px;max-width:58ch}
+.seuils li{display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:baseline}
+.seuils b{font:700 1.11rem/1.04 var(--texte);background:var(--bleu);color:#fff;padding:4px 8px 3px;border-radius:0;white-space:nowrap}
+.podium{margin-top:22px;max-width:900px}
+.podium-axe{position:relative;height:26px;margin-left:var(--retrait);margin-right:3.6em;font-size:.8125rem;line-height:1.1;color:var(--encre2)}
+.podium-axe span{position:absolute;bottom:4px;transform:translateX(-50%);text-align:center;white-space:nowrap}
+.podium-axe span b{display:block;color:var(--encre);font:700 .812rem/1.04 var(--texte)}
+.ligne{display:grid;grid-template-columns:46px minmax(0,1fr);gap:4px 10px;padding:8px 0;border-top:1px solid var(--filet);align-items:center;width:100%;background:none;border-left:0;border-right:0;border-bottom:0;text-align:left;cursor:pointer}
+.ligne-photo{grid-row:span 2;width:46px;height:46px;background:var(--etagere);border-radius:0;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.ligne-photo img{max-width:42px;max-height:42px;mix-blend-mode:multiply;object-fit:contain}
+.ligne-nom{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ligne-nom b{font-weight:700}
+.ligne-jauge{display:grid;grid-template-columns:1fr 3.6em;gap:0;align-items:center}
+.piste{position:relative;height:18px;background:
+  linear-gradient(var(--encre),var(--encre)) calc(var(--s1)*1%) 0/2px 100% no-repeat,
+  linear-gradient(var(--encre),var(--encre)) calc(var(--s2)*1%) 0/2px 100% no-repeat}
+.piste i{display:block;height:100%;background:var(--encre2);border-radius:0;min-width:3px;position:relative;opacity:.9}
+.piste i.dit{background:var(--bleu);opacity:1}
+.ligne-jauge b{font:700 .925rem/1.04 var(--texte);text-align:right;white-space:nowrap}
+@media (min-width:760px){
+  .ligne{grid-template-columns:46px minmax(0,17em) minmax(0,1fr)}
+  .ligne-photo{grid-row:auto}
+}
+.carte-zone{margin-top:14px;border:1px solid var(--encre);border-radius:0;background:var(--panneau);padding:10px 6px 6px;max-width:900px}
+.carte-zone svg{display:block;width:100%;height:auto;overflow:visible}
+.carte-zone text{font-family:var(--texte);fill:var(--encre)}
+.carte-zone .grille{stroke:var(--filet);stroke-width:1}
+.carte-zone .pt{fill:var(--encre);fill-opacity:.45;cursor:pointer}
+.carte-zone .pt.dit{fill:var(--bleu);fill-opacity:1;stroke:var(--page);stroke-width:2}
+.carte-zone .pt:focus-visible{outline:3px solid var(--bleu-texte);outline-offset:2px}
+.legende{margin-top:10px;display:flex;flex-wrap:wrap;gap:6px 18px;font-size:.9375rem}
+.legende li{display:flex;align-items:center;gap:7px}
+.legende i{width:14px;height:14px;border-radius:50%;flex:none}
+
+/* ---------- Toutes les barres ---------- */
+.filtres{margin-top:18px;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.puce{border:1px solid var(--encre);background:var(--page);color:var(--encre);border-radius:0;padding:8px 14px;min-height:44px;font-weight:700;cursor:pointer}
+.puce[aria-pressed="true"]{background:var(--jaune);color:#000;border-color:var(--encre)}
+.filtres label{display:flex;align-items:center;gap:6px;font-size:.9375rem}
+.filtres select{border:1px solid var(--encre);background:var(--page);border-radius:0;padding:8px 10px;min-height:44px;font-weight:600;max-width:100%}
+.compte{margin-top:12px;color:var(--encre2);font-size:.9375rem}
+.grille-produits{margin-top:12px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+@media (min-width:620px){.grille-produits{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (min-width:880px){.grille-produits{grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}}
+@media (min-width:1100px){.grille-produits{grid-template-columns:repeat(5,minmax(0,1fr))}}
+.carte{position:relative;display:flex;flex-direction:column;text-align:left;background:#fff;color:#000;border:1px solid var(--encre);border-radius:0;overflow:hidden;padding:0;cursor:pointer;min-width:0}
+.carte-photo{height:128px;background:var(--etagere);display:flex;align-items:flex-end;justify-content:center;padding:12px 12px 0}
+.carte-photo img{max-height:114px}
+.carte-tag{padding:8px 10px 10px;display:flex;flex-direction:column;gap:2px;flex:1}
+.carte-marque{font-weight:700;font-size:.9375rem;line-height:1.2}
+.carte-nom{font-size:.8125rem;line-height:1.25;color:#44474D;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:2.5em}
+.prix{display:flex;align-items:flex-end;gap:5px;margin-top:auto;padding-top:8px}
+.prix b{font:600 2.035rem/0.9 var(--titre)}
+.prix span{font-size:.8125rem;line-height:1.1;color:#44474D;padding-bottom:1px}
+.carte-bas{display:flex;align-items:center;justify-content:space-between;gap:6px;margin-top:8px;padding-top:7px;border-top:1px dashed #9AA0A8;font-size:.8125rem}
+.ns{display:inline-flex;align-items:center;justify-content:center;min-width:1.6em;height:1.6em;border-radius:0;font:700 .812rem/1.04 var(--texte);color:#000}
+.ns.ns-a,.ns.ns-e{color:#fff}
+.ns.ns-x{background:#E3E5E8;color:#44474D}
+.sticker{position:absolute;top:9px;left:8px;font:700 .812rem/1.04 var(--texte);padding:5px 8px 4px;border-radius:0;transform:rotate(-5deg);background:var(--bleu);color:#fff;box-shadow:0 0 0 2px #fff}
+.sticker.sous{background:var(--rouge)}
+.sticker.cache{background:var(--jaune);color:#000;box-shadow:0 0 0 2px #000}
+.plus{margin-top:16px;width:100%;border:1px solid var(--encre);background:var(--page);color:var(--encre);border-radius:0;min-height:54px;font:700 1.018rem/1.04 var(--texte);cursor:pointer}
+.plus:hover,.puce:hover{box-shadow:inset 0 0 0 2px var(--encre)}
+
+/* ---------- Fiche produit ---------- */
+dialog{border:1px solid #000;border-radius:0;padding:0;width:min(540px,calc(100% - 20px));max-height:calc(100% - 24px);background:#fff;color:#000;overflow:auto}
+dialog::backdrop{background:rgba(0,0,0,.66)}
+.fiche-photo{position:relative;height:190px;background:var(--etagere);display:flex;align-items:flex-end;justify-content:center;padding:18px 18px 0}
+.fiche-photo img{max-height:168px}
+.fermer{position:absolute;top:8px;right:8px;width:46px;height:46px;border-radius:50%;border:1px solid #000;background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0}
+.fiche-corps{padding:14px 16px 18px}
+.fiche-marque{font-weight:700}
+.fiche-nom{font:600 1.48rem/1.04 var(--titre);margin-top:2px}
+.fiche-meta{margin-top:6px;font-size:.875rem;color:#44474D}
+.fiche-faits{margin-top:14px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;background:#000;border:1px solid #000;border-radius:0;overflow:hidden}
+.fiche-faits div{background:#fff;padding:9px 10px}
+.fiche-faits div.fort{background:var(--jaune)}
+.fiche-faits dt{font-size:.8125rem;line-height:1.2;color:#33363B}
+.fiche-faits dd{font:600 1.295rem/1.04 var(--titre);margin-top:3px}
+.face{margin-top:16px}
+.face h4{margin:0;font:700 .925rem/1.04 var(--texte);}
+.face-ligne{margin-top:6px;display:grid;grid-template-columns:8.6em 1fr 3.4em;gap:8px;align-items:center;font-size:.875rem;line-height:1.2}
+.face-ligne i{display:block;height:14px;background:#000;border-radius:0;min-width:3px}
+.face-ligne i.rayon{background:#A3A8B0}
+.face-ligne b{font:700 .833rem/1.04 var(--texte);text-align:right}
+.verdict{margin-top:16px;padding:10px 12px;border-radius:0;background:var(--etagere);line-height:1.35}
+.verdict strong{font-weight:700}
+.fiche-lien{display:inline-block;margin-top:14px;color:#2148D8;font-weight:600}
+
+/* ---------- Méthode et pied ---------- */
+.methode{margin-top:16px;display:grid;gap:10px;max-width:68ch;list-style:disc;padding-left:1.2em}
+.methode li::marker{color:var(--encre)}
+footer{margin-top:64px;background:#000;color:#fff;padding:22px 0 26px}
+footer p{max-width:70ch;font-size:.9375rem;color:#D6D8DC}
+footer p + p{margin-top:6px}
+footer a{color:var(--jaune)}
+
+/* ---------- Direction Étude : blanc, filets fins, titres à empattements ---------- */
+h1,h2,.logo,.fiche-nom,.constat-chiffre b,.gros-fait b,.prix b{letter-spacing:-.018em}
+.bandeau{background:var(--page);color:var(--encre);border-bottom:1px solid var(--encre)}
+.bandeau small{color:var(--encre2)}
+.logo{font:700 1.4375rem/1 var(--titre)}
+.logo i{color:#000;background:var(--jaune);padding:0 .06em}
+.affiche{background:var(--page);color:var(--encre);padding-top:34px}
+h1{font:600 clamp(2.25rem,8.4vw,4.25rem)/1.06 var(--titre);max-width:15em}
+.chapo{font-weight:400;font-size:1.125rem;line-height:1.45;max-width:48ch}
+.vitrine{border:0;border-top:1px solid var(--encre);border-bottom:1px solid var(--encre);color:#000;margin-top:28px}
+.vitrine-titre{font-size:.9375rem}
+.rail{height:2px;border:0}
+.marque .rail{border:0}
+.rang{background:var(--jaune);color:#000;font:700 .8125rem/1 var(--texte);padding:4px 6px}
+section{padding-top:48px}
+section>h2{padding-top:22px;border-top:1px solid var(--encre);max-width:none}
+h2{font:600 clamp(1.75rem,6vw,2.5rem)/1.1 var(--titre)}
+h3{font:700 1.0625rem/1.2 var(--texte)}
+.constats{gap:20px 20px;padding-top:30px}
+.constat{border:0;border-top:2px solid var(--encre);background:none}
+.constat-chiffre{background:none;color:var(--encre);border:0;padding:12px 0 2px;align-items:baseline}
+.constat-chiffre b{font:600 clamp(2.75rem,10.5vw,3.75rem)/1 var(--titre)}
+.constat-chiffre span{font:600 1.0625rem/1 var(--texte);padding:0}
+.constat.ton-e .constat-chiffre,.constat.ton-bleu .constat-chiffre{background:none}
+.constat.ton-e .constat-chiffre b{color:var(--ns-e)}
+.constat.ton-bleu .constat-chiffre{color:var(--bleu-texte)}
+.constat p{padding:4px 0 0;color:var(--encre2)}
+.constat p strong{color:var(--encre)}
+.groupe i{height:14px}
+.groupe:first-child i{box-shadow:inset 0 0 0 1px var(--encre)}
+.marque-tete b{font:600 1.375rem/1.1 var(--titre)}
+.mini-etagere{border:0;border-top:1px solid var(--encre)}
+.barre-compo{height:66px}
+.gros-fait b{font:600 3.5rem/.9 var(--titre)}
+.carte-zone{border:0;border-top:1px solid var(--encre);border-bottom:1px solid var(--encre)}
+.sticker{transform:none;box-shadow:none;top:0;left:0;font:700 .75rem/1 var(--texte);padding:6px 8px}
+.sticker.cache{box-shadow:none}
+.puce,.filtres select{font-weight:600}
+.plus{font:600 1rem/1 var(--texte)}
+.prix b{font:600 2.25rem/.9 var(--titre)}
+.fiche-nom{font:600 1.625rem/1.1 var(--titre)}
+.fiche-faits div.fort{background:var(--jaune-pale)}
+.fiche-faits dd{font:600 1.375rem/1 var(--titre)}
+.sans-photo{background:var(--etagere);color:#000;border:1px solid #000}
+@media (max-width:359px){.barre-compo div{padding:0 4px}.barre-compo b{font-size:1rem}.barre-compo span{font-size:.75rem}.prix b{font-size:1.75rem}.prix span{font-size:.75rem}}
+
+/* ---------- Explorer : recherche, curseurs, résumé, comparaison ---------- */
+.chercher input{border:1px solid var(--encre);background:var(--page);color:var(--encre);padding:8px 10px;min-height:44px;width:11.5em;max-width:100%;font:inherit;font-weight:600;border-radius:0;-webkit-appearance:none;appearance:none}
+.chercher input::placeholder{color:var(--encre2);font-weight:400;opacity:1}
+.filtres label{max-width:100%;min-width:0}
+.filtres select{min-width:0;flex:0 1 auto;text-overflow:ellipsis}
+.curseurs{margin-top:16px;display:grid;gap:14px 32px;max-width:760px}
+@media (min-width:700px){.curseurs{grid-template-columns:1fr 1fr}}
+.curseur label{display:flex;justify-content:space-between;gap:10px;font-weight:700;font-size:.9375rem}
+.curseur output{font-weight:400;color:var(--encre2)}
+.curseur input{display:block;width:100%;height:44px;margin:0;background:none;accent-color:var(--encre);cursor:pointer}
+.etat{margin-top:6px;display:flex;flex-wrap:wrap;align-items:center;gap:6px 16px;min-height:44px}
+.etat .compte{margin-top:0}
+.raz{border:0;background:none;padding:0;min-height:44px;color:var(--bleu-texte);font-weight:600;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+.bilan{margin-top:6px;max-width:560px;border-top:2px solid var(--encre)}
+.bilan table{width:100%;border-collapse:collapse;font-size:.9375rem}
+.bilan th,.bilan td{padding:8px 0;border-bottom:1px solid var(--filet);text-align:right;font-variant-numeric:tabular-nums}
+.bilan th:first-child,.bilan td:first-child{text-align:left}
+.bilan thead th{font-weight:700;font-size:.8125rem;color:var(--encre2)}
+.bilan tbody th{font-weight:400}
+.bilan td.sel{font:600 1.25rem/1 var(--titre)}
+.bilan td.ray{color:var(--encre2);width:5.5em}
+.carte-zone .pt{transition:fill-opacity .15s}
+.carte-zone .pt.hors{fill-opacity:.1;stroke:none}
+.carte-zone .guide{stroke:var(--encre);stroke-width:1.5;stroke-dasharray:5 4}
+.carte-zone text.hors{opacity:.15}
+@media (prefers-reduced-motion:reduce){.carte-zone .pt{transition:none}}
+button.groupe{width:100%;background:none;border:0;padding:3px 0;text-align:left;cursor:pointer;min-height:30px;color:inherit}
+button.groupe:hover span,.marque-lien:hover b{text-decoration:underline;text-underline-offset:3px}
+.marque-lien{background:none;border:0;padding:0;cursor:pointer;color:inherit;min-height:32px;display:inline-flex;align-items:baseline;gap:10px;flex-wrap:wrap;text-align:left}
+.fiche-comparer{display:block;width:100%;margin-top:14px;border:1px solid #000;background:#fff;color:#000;min-height:46px;font-weight:700;cursor:pointer}
+.fiche-comparer:hover{background:var(--jaune)}
+.attente{position:fixed;left:0;right:0;bottom:0;z-index:5;background:#000;color:#fff;border-top:3px solid var(--jaune);padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px));display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap}
+.attente[hidden]{display:none}
+.attente p{font-size:.9375rem;line-height:1.3;max-width:34em}
+.attente button{border:1px solid #fff;background:none;color:#fff;min-height:44px;padding:0 14px;font-weight:700;cursor:pointer}
+.duel-tete{display:grid;grid-template-columns:1fr 1fr;border-bottom:2px solid #000}
+.duel-tete>div{padding:14px 12px 10px;min-width:0}
+.duel-tete>div+div{border-left:1px solid #000}
+.duel-photo{height:96px;display:flex;align-items:flex-end;justify-content:center;background:var(--etagere);margin:-14px -12px 10px;padding:10px 10px 0}
+.duel-photo img{max-height:84px;mix-blend-mode:multiply;object-fit:contain}
+.duel-tete b{display:block;font-weight:700;line-height:1.2}
+.duel-tete span{display:block;font-size:.8125rem;line-height:1.25;color:#44474D;margin-top:2px}
+.duel-ligne{padding:9px 0;border-bottom:1px solid #DADADA}
+.duel-ligne h4{margin:0;font:400 .8125rem/1.2 var(--texte);color:#44474D}
+.duel-vals{display:grid;grid-template-columns:1fr 1fr;gap:0 16px;margin-top:4px}
+.duel-vals b{display:block;font:600 1.375rem/1.1 var(--titre)}
+.duel-vals i{display:block;height:8px;margin-top:4px;background:#000;min-width:2px}
+.duel-vals div+div i{background:#8C8C8C}
+dialog .fermer.coin{position:absolute;top:8px;right:8px;z-index:1}
+.duel{position:relative}
+</style>
+</head>
+<body>
+<header class="bandeau">
+  <div class="bloc">
+    <span class="logo">Le <i>Barr</i>omètre</span>
+    <small id="date-releve"></small>
+  </div>
+</header>
+
+<div class="affiche">
+  <div class="bloc">
+    <h1>Le rayon barres chocolatées passé au scanner</h1>
+    <p class="chapo" id="chapo"></p>
+    <div class="vitrine">
+      <p class="vitrine-titre">Les plus scannées</p>
+      <div class="defile" id="vitrine" tabindex="0" aria-label="Les barres les plus scannées, liste à faire défiler"></div>
+    </div>
+  </div>
+</div>
+
+<main>
+  <div class="bloc">
+    <h2 class="sr">L'essentiel en quatre chiffres</h2>
+    <div class="constats" id="constats"></div>
+  </div>
+
+  <section class="bloc" aria-labelledby="t-occupe">
+    <h2 id="t-occupe">Qui occupe le rayon</h2>
+    <p class="intro" id="intro-occupe"></p>
+    <div class="groupes" id="groupes"></div>
+    <p class="lecture" id="lecture-groupes"></p>
+    <div class="marques" id="marques"></div>
+  </section>
+
+  <section class="bloc" aria-labelledby="t-compo">
+    <h2 id="t-compo">Ce qu'il y a dans une barre</h2>
+    <p class="intro">Composition médiane pour 100 g. La barre ci-dessous est à l'échelle : chaque morceau occupe la place de son poids.</p>
+    <div class="barre-compo" id="compo" role="img"></div>
+    <ul class="compo-legende" id="compo-legende"></ul>
+    <div class="duo">
+      <div>
+        <h3>Nutri-Score</h3>
+        <div class="ns-barre" id="ns-barre" role="img"></div>
+        <div class="ns-detail" id="ns-detail"></div>
+      </div>
+      <div>
+        <h3>Transformation</h3>
+        <div class="gros-fait" id="nova"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="bloc" aria-labelledby="t-prot">
+    <h2 id="t-prot">Qui parle de protéine</h2>
+    <p class="intro">La loi fixe deux seuils. Ils se calculent sur les calories, pas sur le poids.</p>
+    <ul class="seuils">
+      <li><b>12 %</b><span>des calories apportées par les protéines : le pack peut écrire « source de protéines ».</span></li>
+      <li><b>20 %</b><span>des calories : le pack peut écrire « riche en protéines ».</span></li>
+    </ul>
+    <h3 style="margin-top:30px">Les dix barres les plus protéinées</h3>
+    <p class="intro" id="lecture-podium"></p>
+    <div class="podium" id="podium"></div>
+
+  </section>
+
+  <section class="bloc" aria-labelledby="t-tout">
+    <h2 id="t-tout">Explorer le rayon</h2>
+    <p class="intro">Filtrez le rayon : le résumé, le nuage de points et la liste suivent vos réglages. Cliquez sur une barre pour ouvrir sa fiche, puis comparez-la à une autre.</p>
+    <div class="filtres">
+      <label class="chercher">Chercher <input type="search" id="f-q" placeholder="Nom ou marque" autocomplete="off" spellcheck="false"></label>
+      <button type="button" class="puce" data-fam="tous" aria-pressed="true"></button>
+      <button type="button" class="puce" data-fam="prot" aria-pressed="false"></button>
+      <label>Marque <select id="f-marque"></select></label>
+      <label>Tri <select id="f-tri">
+        <option value="scans">Les plus scannées</option>
+        <option value="prot">Les plus protéinées</option>
+        <option value="sucres-haut">Les plus sucrées</option>
+        <option value="sucres-bas">Les moins sucrées</option>
+      </select></label>
+    </div>
+    <div class="curseurs">
+      <div class="curseur"><label for="f-sucres">Sucres <output id="o-sucres" for="f-sucres"></output></label><input type="range" id="f-sucres" min="0" step="1"></div>
+      <div class="curseur"><label for="f-prot">Protéines <output id="o-prot" for="f-prot"></output></label><input type="range" id="f-prot" min="0" step="1" value="0"></div>
+    </div>
+    <div class="etat">
+      <p class="compte" id="compte" role="status" aria-live="polite"></p>
+      <button type="button" class="raz" id="raz" hidden>Tout réafficher</button>
+    </div>
+    <div class="bilan" id="bilan" hidden></div>
+    <h3 style="margin-top:28px">Sucres contre protéines</h3>
+    <p class="intro">Chaque point est une barre. Les points hors de votre sélection s'effacent.</p>
+    <div class="carte-zone" id="nuage"></div>
+    <ul class="legende">
+      <li><i style="background:var(--bleu)"></i>Parle de protéine</li>
+      <li><i style="background:var(--encre);opacity:.45"></i>N'en parle pas</li>
+    </ul>
+    <h3 style="margin-top:28px" id="t-liste">Les barres</h3>
+    <p class="intro">Le grand chiffre de chaque étiquette donne les protéines pour 100 g.</p>
+    <div class="grille-produits" id="grille"></div>
+    <button type="button" class="plus" id="plus" hidden></button>
+  </section>
+
+  <section class="bloc" aria-labelledby="t-methode">
+    <h2 id="t-methode">Méthode et limites</h2>
+    <ul class="methode" id="methode"></ul>
+  </section>
+</main>
+
+<footer>
+  <div class="bloc">
+    <p>Conçu par Alex. Code écrit avec Claude (Anthropic).</p>
+    <p>Données <a href="https://fr.openfoodfacts.org" target="_blank" rel="noopener">Open Food Facts</a> sous licence ODbL. Photos des contributeurs Open Food Facts, licence CC BY-SA. Les marques et les emballages appartiennent à leurs propriétaires. Projet personnel, sans lien avec les marques citées.</p>
+  </div>
+</footer>
+
+<dialog id="fiche" aria-labelledby="fiche-nom"></dialog>
+<div class="attente" id="attente" role="status" hidden><p id="attente-texte"></p><button type="button" id="attente-annuler">Annuler</button></div>
+
+<script>
+(function(){
+"use strict";
+const BRUT = /*__DONNEES__*/null;
+const META = BRUT.meta;
+const SEUIL = 12, RICHE = 20;
+
+/* ---------- Outils ---------- */
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const nb = (x, d) => x == null ? "n.d." : x.toLocaleString("fr-FR", {minimumFractionDigits:d||0, maximumFractionDigits:d||0});
+const pct = (a, b) => b ? Math.round(a / b * 100) : 0;
+const pl = (n, mot) => nb(n) + " " + mot + (n > 1 ? "s" : "");
+const med = t => { t = t.filter(x => x != null); if (!t.length) return null; const s = [...t].sort((a,b)=>a-b), m = s.length >> 1; return s.length % 2 ? s[m] : (s[m-1] + s[m]) / 2; };
+
+/* ---------- Préparation ---------- */
+const P = BRUT.produits.map((x, i) => {
+  const valide = x.p != null && x.k != null && x.k >= 50 && x.k <= 950 && x.p >= 0 && x.p <= 100;
+  const part = valide ? Math.min(100, x.p * 4 / x.k * 100) : null;
+  let fam = "nd";
+  if (valide) fam = x.d ? (part >= SEUIL ? "tenu" : "sous") : (part >= SEUIL ? "cache" : "standard");
+  return Object.assign({}, x, { i, rang:i + 1, valide, part, fam, photo:x.i });
+});
+const N = P.length;
+const FAM = {
+  tenu:     { sticker:"Protéine", classe:"",      titre:"Protéine annoncée, seuil atteint.",   texte:"Le pack met la protéine en avant et la barre dépasse 12 % des calories." },
+  sous:     { sticker:"Protéine ?", classe:"sous", titre:"Protéine annoncée, sous le seuil.",   texte:"Le pack met la protéine en avant, mais le calcul donne moins de 12 % des calories. À vérifier sur le pack." },
+  cache:    { sticker:"Seuil atteint", classe:"cache", titre:"Seuil atteint, sans mention sur la fiche.", texte:"La barre dépasse 12 % des calories en protéines. Ni son nom ni ses labels ne parlent de protéine sur Open Food Facts : le pack peut le faire, la photo permet de vérifier." },
+  standard: { sticker:"", classe:"", titre:"Barre classique.", texte:"Le pack ne parle pas de protéine et la barre reste sous 12 % des calories." },
+  nd:       { sticker:"", classe:"", titre:"Valeurs manquantes.", texte:"La fiche ne donne pas assez de valeurs nutritionnelles pour le calcul." }
+};
+const MED = { p:med(P.map(x => x.valide ? x.p : null)), s:med(P.map(x => x.s)), f:med(P.map(x => x.f)), k:med(P.map(x => x.k)) };
+
+const parMarque = new Map(), parGroupe = new Map();
+P.forEach(x => {
+  if (!parMarque.has(x.m)) parMarque.set(x.m, { nom:x.m, groupe:x.g, refs:[] });
+  parMarque.get(x.m).refs.push(x);
+  parGroupe.set(x.g, (parGroupe.get(x.g) || 0) + 1);
+});
+const marques = [...parMarque.values()].sort((a, b) => b.refs.length - a.refs.length);
+const groupes = [...parGroupe.entries()].map(([nom, n]) => ({ nom, n })).sort((a, b) => (a.nom === "Autres") - (b.nom === "Autres") || b.n - a.n);
+const dits = P.filter(x => x.d);
+
+const photo = (x, cls) => x.photo ? `<img src="${x.photo}" alt="" loading="lazy" decoding="async"${cls ? ` class="${cls}"` : ""}>` : `<span class="sans-photo" aria-hidden="true">${esc(x.m.slice(0, 2))}</span>`;
+function sousTitre(x){
+  const m = x.m.replace(/\s*\(.*\)$/, "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const r = x.n.replace(new RegExp("^" + m + "\\b[\\s,:-]*", "i"), "").trim();
+  if (!r) return x.q ? "Format " + x.q : "Barre chocolatée";
+  return r[0].toUpperCase() + r.slice(1);
+}
+const rattache = (m, grp) => grp === "Marques de distributeur" ? ", marque de distributeur" : (grp !== "Autres" && grp !== m ? ", groupe " + grp : "");
+const lu = x => `${x.m}, ${x.n}${x.valide ? ", " + nb(x.p, 1) + " g de protéines pour 100 g" : ""}. Ouvrir la fiche.`;
+
+/* ---------- Affiche ---------- */
+function afficherAffiche(){
+  const quand = new Date(META.date).toLocaleDateString("fr-FR", { day:"numeric", month:"long", year:"numeric" });
+  $("#date-releve").textContent = "Relevé Open Food Facts du " + quand;
+  $("#chapo").textContent = `Les ${N} barres chocolatées vendues en France les plus scannées sur Open Food Facts : les marques du rayon, la composition d'une barre et la place de la protéine.`;
+  $("#vitrine").innerHTML = P.slice(0, 10).map(x =>
+    `<button type="button" class="pose" data-i="${x.i}" aria-label="Numéro ${x.rang} : ${esc(lu(x))}">
+      <span class="pose-photo">${photo(x)}</span><span class="rail"></span>
+      <span class="pose-tag"><em class="rang" style="font-style:normal">N° ${x.rang}</em><b>${esc(x.m)}</b><span>${esc(sousTitre(x))}</span></span>
+    </button>`).join("");
+}
+
+/* ---------- Constats ---------- */
+function afficherConstats(){
+  const top = marques[0], notes = P.filter(x => x.ns);
+  const lettres = "abcde".split("").map(l => [l, notes.filter(x => x.ns === l).length]).sort((a, b) => b[1] - a[1]);
+  const [L, nL] = lettres[0];
+  const tenus = dits.filter(x => x.fam === "tenu").length;
+  const blocs = [
+    ["", pct(top.refs.length, N), "%", `des barres portent la marque <strong>${esc(top.nom)}</strong>, soit ${top.refs.length} sur ${N}.`],
+    [L === "e" ? "ton-e" : "", pct(nL, notes.length), "%", `des barres notées sont classées <strong>Nutri-Score ${L.toUpperCase()}</strong>${L === "e" ? ", la moins bonne note" : ""}.`],
+    ["", nb(MED.s), "g", `de <strong>sucres</strong> pour 100 g, à la médiane.${MED.s >= 40 && MED.s <= 55 ? " Presque la moitié du poids d'une barre." : ""}`],
+    ["ton-bleu", nb(dits.length), "sur " + N, `${dits.length > 1 ? "parlent" : "parle"} de <strong>protéine</strong>.${dits.length ? (tenus === dits.length ? " Toutes dépassent le seuil légal de 12 % des calories." : ` ${tenus} sur ${dits.length} dépassent le seuil légal de 12 % des calories.`) : ""}`]
+  ];
+  $("#constats").innerHTML = blocs.map(b => `<div class="constat ${b[0]}"><div class="constat-chiffre"><b>${b[1]}</b><span>${b[2]}</span></div><p>${b[3]}</p></div>`).join("");
+}
+
+/* ---------- Qui occupe le rayon ---------- */
+function ouvrable(x, cls, contenu){ return `<button type="button" class="${cls}" data-i="${x.i}" aria-label="${esc(lu(x))}">${contenu}</button>`; }
+function afficherOccupation(){
+  $("#intro-occupe").innerHTML = `Une référence est un code-barres : le même produit vendu en plusieurs formats compte plusieurs fois. Le classement mesure donc la <strong>présence en rayon</strong>, pas les ventes.`;
+  const max = Math.max(...groupes.map(g => g.n));
+  $("#groupes").innerHTML = groupes.map(g => `<button type="button" class="groupe" data-groupe="${esc(g.nom)}" aria-label="${esc(g.nom)} : ${pl(g.n, "référence")}. Afficher ces barres."><span>${esc(g.nom)}</span><i style="width:${g.n / max * 100}%"></i><b>${g.n}</b></button>`).join("");
+  const nommes = groupes.filter(g => g.nom !== "Autres" && g.nom !== "Marques de distributeur");
+  if (nommes.length >= 2) $("#lecture-groupes").innerHTML = `<strong>${esc(nommes[0].nom)}</strong> et <strong>${esc(nommes[1].nom)}</strong> signent ${pct(nommes[0].n + nommes[1].n, N)} % des références à eux deux.`;
+
+  const tete = marques.slice(0, 7), reste = marques.slice(7);
+  const rangs = tete.map(m => ({ nom:m.nom, lien:m.nom, detail:`${pl(m.refs.length, "référence")}${rattache(m.nom, m.groupe)}`, refs:m.refs }));
+  if (reste.length) rangs.push({ nom:"Autres marques", detail:`${pl(reste.reduce((s, m) => s + m.refs.length, 0), "référence")}, ${pl(reste.length, "marque")}`, refs:reste.flatMap(m => m.refs) });
+  $("#marques").innerHTML = rangs.map(r => `<div class="marque"><div class="marque-tete">${r.lien ? `<button type="button" class="marque-lien" data-marque="${esc(r.lien)}" aria-label="${esc(r.nom)}, ${esc(r.detail)}. Afficher ces barres."><b>${esc(r.nom)}</b><span>${esc(r.detail)}</span></button>` : `<b>${esc(r.nom)}</b><span>${esc(r.detail)}</span>`}</div>
+    <div class="mini-etagere">${r.refs.map(x => ouvrable(x, "mini", photo(x))).join("")}</div><div class="rail"></div></div>`).join("");
+}
+
+/* ---------- Composition ---------- */
+function afficherCompo(){
+  const reste = Math.max(0, 100 - MED.s - MED.f - MED.p);
+  const parts = [["c-sucres", "Sucres", MED.s], ["c-gras", "Matières grasses", MED.f, "Gras"], ["c-prot", "Protéines", MED.p], ["c-reste", "Le reste", reste]];
+  $("#compo").setAttribute("aria-label", "Composition médiane pour 100 g : " + parts.map(p => `${p[1]} ${nb(p[2])} g`).join(", "));
+  $("#compo").innerHTML = parts.map(p => `<div class="${p[0]}" style="flex:${Math.max(p[2], 0.01)} 1 0"><b>${nb(p[2])} g</b>${p[2] >= 15 ? `<span>${p[3] || p[1]}</span>` : ""}</div>`).join("");
+  $("#compo-legende").innerHTML = parts.map(p => `<li><i class="${p[0]}"></i>${p[1]}${p[0] === "c-reste" ? " : amidon, fibres, eau, sel" : ""}, ${nb(p[2])} g</li>`).join("");
+
+  const notes = P.filter(x => x.ns), comptes = "abcde".split("").map(l => [l, notes.filter(x => x.ns === l).length]);
+  $("#ns-barre").setAttribute("aria-label", "Répartition du Nutri-Score : " + comptes.map(c => `${c[0].toUpperCase()} ${c[1]}`).join(", "));
+  $("#ns-barre").innerHTML = comptes.filter(c => c[1]).map(c => `<div class="ns-${c[0]}" style="flex:${c[1]} 1 0">${c[1] / notes.length >= .06 ? c[0].toUpperCase() : ""}</div>`).join("");
+  $("#ns-detail").innerHTML = comptes.filter(c => c[1]).map(c => `<span>${c[0].toUpperCase()} : ${pl(c[1], "barre")}</span>`).join("") + (N - notes.length ? `<span>Sans note : ${N - notes.length}</span>` : "");
+  const classes = P.filter(x => x.nova), n4 = classes.filter(x => x.nova === 4).length;
+  $("#nova").innerHTML = `<b>${pct(n4, classes.length)} %</b><span>des barres sont classées ultra-transformées (groupe 4 de l'échelle NOVA).</span>`;
+}
+
+/* ---------- Protéine : classement et nuage ---------- */
+function afficherPodium(){
+  const tries = P.filter(x => x.valide).sort((a, b) => b.part - a.part), top = tries.slice(0, 10);
+  const echelle = Math.max(30, Math.ceil(top[0].part / 5) * 5 + 5);
+  const el = $("#podium");
+  el.style.setProperty("--s1", SEUIL / echelle * 100); el.style.setProperty("--s2", RICHE / echelle * 100);
+  const auSeuil = tries.filter(x => x.part >= SEUIL), classique = tries.find(x => x.fam === "standard");
+  let texte = `Part des calories apportées par les protéines. ${pl(auSeuil.length, "barre")} ${auSeuil.length > 1 ? "dépassent" : "dépasse"} le seuil de 12 %`;
+  const annoncent = auSeuil.filter(x => x.d).length;
+  if (auSeuil.length && annoncent === auSeuil.length) texte += auSeuil.length > 1 ? ", et toutes l'annoncent sur le pack." : ", et elle l'annonce sur le pack.";
+  else if (auSeuil.length) texte += `, dont ${annoncent} qui ${annoncent > 1 ? "parlent" : "parle"} de protéine.`;
+  else texte += ".";
+  if (classique) texte += ` Juste en dessous, la première barre classique, <strong>${esc(classique.m)}</strong>, s'arrête à ${nb(classique.part)} %.`;
+  $("#lecture-podium").innerHTML = texte;
+  el.innerHTML = `<div class="podium-axe" aria-hidden="true"><span style="left:${SEUIL / echelle * 100}%"><b>12 %</b></span><span style="left:${RICHE / echelle * 100}%"><b>20 %</b></span></div>` +
+    top.map(x => `<button type="button" class="ligne" data-i="${x.i}" aria-label="${esc(x.m)}, ${esc(x.n)} : ${nb(x.part)} % des calories en protéines. Ouvrir la fiche.">
+      <span class="ligne-photo">${photo(x)}</span>
+      <span class="ligne-nom"><b>${esc(x.m)}</b> ${esc(sousTitre(x))}</span>
+      <span class="ligne-jauge"><span class="piste"><i class="${x.d ? "dit" : ""}" style="width:${x.part / echelle * 100}%"></i></span><b>${nb(x.part)} %</b></span>
+    </button>`).join("");
+  const retrait = () => el.style.setProperty("--retrait", (matchMedia("(min-width:760px)").matches ? el.querySelector(".piste").getBoundingClientRect().left - el.getBoundingClientRect().left : 56) + "px");
+  retrait(); addEventListener("resize", retrait);
+}
+
+let repere = null;
+function afficherNuage(){
+  const zone = $("#nuage"), pts = P.filter(x => x.valide && x.s != null);
+  const W = Math.max(280, zone.clientWidth - 12), H = W < 520 ? Math.round(W * .95) : 440;
+  const m = { g:44, d:16, h:14, b:44 };
+  const maxX = Math.max(40, Math.ceil(Math.max(...pts.map(x => x.p)) / 10) * 10), maxY = Math.max(60, Math.ceil(Math.max(...pts.map(x => x.s)) / 10) * 10);
+  const X = v => m.g + v / maxX * (W - m.g - m.d), Y = v => H - m.b - v / maxY * (H - m.h - m.b);
+  let s = `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="group" aria-label="Nuage de points : sucres en fonction des protéines, ${pts.length} barres">`;
+  for (let v = 0; v <= maxY; v += 10) s += `<line class="grille" x1="${m.g}" x2="${W - m.d}" y1="${Y(v)}" y2="${Y(v)}"/><text x="${m.g - 8}" y="${Y(v) + 5}" text-anchor="end" font-size="14">${v}</text>`;
+  for (let v = 0; v <= maxX; v += 10) s += `<line class="grille" y1="${m.h}" y2="${H - m.b}" x1="${X(v)}" x2="${X(v)}"/><text x="${X(v)}" y="${H - m.b + 19}" text-anchor="middle" font-size="14">${v}</text>`;
+  s += `<text x="${W - m.d}" y="${H - 6}" text-anchor="end" font-size="14" font-weight="700">Protéines, g pour 100 g</text>`;
+  s += `<text x="${m.g + 6}" y="${m.h + 14}" font-size="14" font-weight="700">Sucres, g pour 100 g</text>`;
+  const poses = [];
+  [...pts].sort((a, b) => a.d - b.d).forEach(x => {
+    const cx = X(x.p), cy = Y(x.s);
+    s += `<circle class="pt${x.d ? " dit" : ""}" cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="${x.d ? 8 : 6}" tabindex="0" role="button" data-i="${x.i}" aria-label="${esc(x.m)}, ${esc(x.n)} : ${nb(x.p, 1)} g de protéines, ${nb(x.s)} g de sucres"><title>${esc(x.m)} ${esc(x.n)}</title></circle>`;
+    if (x.d && !poses.some(q => Math.abs(q[0] - cx) < 44 && Math.abs(q[1] - cy) < 18)){
+      poses.push([cx, cy]);
+      const auBord = cx > W - 50;
+      s += `<text data-pour="${x.i}" x="${auBord ? cx + 8 : cx}" y="${cy - 13}" text-anchor="${auBord ? "end" : "middle"}" font-size="14" font-weight="700">${esc(x.m)}</text>`;
+    }
+  });
+  s += `<line class="guide" id="guide-s" x1="${m.g}" x2="${W - m.d}" visibility="hidden"/><line class="guide" id="guide-p" y1="${m.h}" y2="${H - m.b}" visibility="hidden"/>`;
+  zone.innerHTML = s + `</svg>`;
+  repere = { X, Y, maxX, maxY };
+  if (typeof majNuage === "function") majNuage();
+}
+function majNuage(){
+  if (!repere) return;
+  const dedans = new Set(choisies().map(x => x.i));
+  document.querySelectorAll("#nuage .pt").forEach(c => c.classList.toggle("hors", !dedans.has(Number(c.dataset.i))));
+  document.querySelectorAll("#nuage text[data-pour]").forEach(t => t.classList.toggle("hors", !dedans.has(Number(t.dataset.pour))));
+  const gs = $("#guide-s"), gp = $("#guide-p");
+  if (vue.sMax != null){ const y = repere.Y(vue.sMax); gs.setAttribute("y1", y); gs.setAttribute("y2", y); gs.setAttribute("visibility", "visible"); } else gs.setAttribute("visibility", "hidden");
+  if (vue.pMin > 0){ const x = repere.X(Math.min(vue.pMin, repere.maxX)); gp.setAttribute("x1", x); gp.setAttribute("x2", x); gp.setAttribute("visibility", "visible"); } else gp.setAttribute("visibility", "hidden");
+}
+
+/* ---------- Toutes les barres ---------- */
+const vue = { fam:"tous", marque:"", tri:"scans", n:20, q:"", sMax:null, pMin:0 };
+const plat = s => String(s).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+const S_MAX = Math.max(60, Math.ceil(Math.max(...P.map(x => x.s ?? 0)) / 10) * 10), P_MAX = Math.max(40, Math.ceil(Math.max(...P.map(x => x.valide ? x.p : 0)) / 10) * 10);
+function choisies(){
+  const q = plat(vue.q.trim()), parGroupeChoisi = vue.marque.startsWith("groupe:") ? vue.marque.slice(7) : null;
+  return P.filter(x => (vue.fam === "tous" || x.d)
+    && (!vue.marque || (parGroupeChoisi ? x.g === parGroupeChoisi : x.m === vue.marque))
+    && (!q || plat(x.m + " " + x.n + " " + x.g).includes(q))
+    && (vue.sMax == null || (x.s != null && x.s <= vue.sMax))
+    && (vue.pMin <= 0 || (x.valide && x.p >= vue.pMin)));
+}
+const filtree = () => vue.fam !== "tous" || !!vue.marque || !!vue.q.trim() || vue.sMax != null || vue.pMin > 0;
+function afficherBilan(L){
+  const el = $("#bilan");
+  $("#raz").hidden = !filtree();
+  if (!filtree() || !L.length){ el.hidden = true; el.innerHTML = ""; return; }
+  const notees = L.filter(x => x.ns), toutes = P.filter(x => x.ns);
+  const lignes = [
+    ["Sucres pour 100 g, médiane", med(L.map(x => x.s)), MED.s, " g"],
+    ["Protéines pour 100 g, médiane", med(L.map(x => x.valide ? x.p : null)), MED.p, " g"],
+    ["Calories pour 100 g, médiane", med(L.map(x => x.k)), MED.k, ""],
+    ["Barres notées Nutri-Score E", notees.length ? pct(notees.filter(x => x.ns === "e").length, notees.length) : null, pct(toutes.filter(x => x.ns === "e").length, toutes.length), " %"]
+  ];
+  const v = (x, u) => x == null ? "n.d." : nb(x, u === " g" && x < 10 && x % 1 ? 1 : 0) + u.replace(" ", "\u00a0");
+  el.hidden = false;
+  el.innerHTML = `<table><caption class="sr">Votre sélection comparée à l'ensemble du rayon</caption><thead><tr><th scope="col"><span class="sr">Mesure</span></th><th scope="col">Votre sélection</th><th scope="col">Le rayon</th></tr></thead><tbody>` +
+    lignes.map(l => `<tr><th scope="row">${l[0]}</th><td class="sel">${v(l[1], l[3])}</td><td class="ray">${v(l[2], l[3])}</td></tr>`).join("") + `</tbody></table>`;
+}
+function majCurseurs(){
+  $("#o-sucres").textContent = vue.sMax == null ? "sans limite" : `au plus ${vue.sMax} g pour 100 g`;
+  $("#o-prot").textContent = vue.pMin > 0 ? `au moins ${vue.pMin} g pour 100 g` : "sans minimum";
+}
+function carte(x){
+  const f = FAM[x.fam];
+  return `<button type="button" class="carte" data-i="${x.i}" aria-label="${esc(lu(x))}">
+    ${f.sticker ? `<span class="sticker ${f.classe}">${f.sticker}</span>` : ""}
+    <span class="carte-photo">${photo(x)}</span><span class="rail"></span>
+    <span class="carte-tag">
+      <span class="carte-marque">${esc(x.m)}</span><span class="carte-nom">${esc(sousTitre(x))}</span>
+      <span class="prix"><b>${x.valide ? nb(x.p, x.p < 10 ? 1 : 0) : "n.d."}</b><span>g de protéines<br>pour 100 g</span></span>
+      <span class="carte-bas"><span>${x.s != null ? nb(x.s) + " g de sucres" : "Sucres n.d."}</span><span class="ns ns-${x.ns || "x"}" aria-label="Nutri-Score ${x.ns ? x.ns.toUpperCase() : "absent"}">${x.ns ? x.ns.toUpperCase() : "?"}</span></span>
+    </span></button>`;
+}
+function afficherGrille(){
+  let L = choisies();
+  const tris = { scans:(a, b) => a.rang - b.rang, prot:(a, b) => (b.p ?? -1) - (a.p ?? -1), "sucres-haut":(a, b) => (b.s ?? -1) - (a.s ?? -1), "sucres-bas":(a, b) => (a.s ?? 999) - (b.s ?? 999) };
+  L = L.sort(tris[vue.tri]);
+  $("#compte").textContent = L.length ? `${pl(L.length, "barre")} sur ${N}.` : "Aucune barre ne correspond à ces réglages. Élargissez un curseur ou réaffichez tout.";
+  afficherBilan(L); majNuage();
+  $("#grille").innerHTML = L.slice(0, vue.n).map(carte).join("");
+  const reste = L.length - vue.n, b = $("#plus");
+  b.hidden = reste <= 0;
+  if (reste > 0) b.textContent = `Afficher ${Math.min(20, reste)} barre${Math.min(20, reste) > 1 ? "s" : ""} de plus`;
+}
+function initFiltres(){
+  document.querySelector('[data-fam="tous"]').textContent = `Toutes (${N})`;
+  document.querySelector('[data-fam="prot"]').textContent = `Parlent de protéine (${dits.length})`;
+  $("#f-marque").innerHTML = `<option value="">Toutes</option><optgroup label="Groupes">` + groupes.map(g => `<option value="groupe:${esc(g.nom)}">${esc(g.nom)} (${g.n})</option>`).join("") + `</optgroup><optgroup label="Marques">` + marques.map(m => `<option value="${esc(m.nom)}">${esc(m.nom)} (${m.refs.length})</option>`).join("") + `</optgroup>`;
+  const cs = $("#f-sucres"), cp = $("#f-prot");
+  cs.max = S_MAX; cs.value = S_MAX; cp.max = P_MAX; cp.value = 0; majCurseurs();
+  cs.addEventListener("input", () => { const v = Number(cs.value); vue.sMax = v >= S_MAX ? null : v; vue.n = 20; majCurseurs(); afficherGrille(); });
+  cp.addEventListener("input", () => { vue.pMin = Number(cp.value); vue.n = 20; majCurseurs(); afficherGrille(); });
+  $("#f-q").addEventListener("input", e => { vue.q = e.target.value; vue.n = 20; afficherGrille(); });
+  $("#raz").addEventListener("click", () => { reglerVue({ fam:"tous", marque:"", q:"", sMax:null, pMin:0 }); $("#f-q").focus(); });
+  document.querySelectorAll(".puce").forEach(b => b.addEventListener("click", () => {
+    vue.fam = b.dataset.fam; vue.n = 20;
+    document.querySelectorAll(".puce").forEach(o => o.setAttribute("aria-pressed", String(o === b)));
+    afficherGrille();
+  }));
+  $("#f-marque").addEventListener("change", e => { vue.marque = e.target.value; vue.n = 20; afficherGrille(); });
+  $("#f-tri").addEventListener("change", e => { vue.tri = e.target.value; vue.n = 20; afficherGrille(); });
+  $("#plus").addEventListener("click", () => { vue.n += 20; afficherGrille(); });
+}
+
+function reglerVue(v){
+  Object.assign(vue, v, { n:20 });
+  document.querySelectorAll(".puce").forEach(o => o.setAttribute("aria-pressed", String(o.dataset.fam === vue.fam)));
+  $("#f-marque").value = vue.marque; $("#f-q").value = vue.q;
+  $("#f-sucres").value = vue.sMax == null ? S_MAX : vue.sMax; $("#f-prot").value = vue.pMin;
+  majCurseurs(); afficherGrille();
+}
+function allerExplorer(v){
+  reglerVue(Object.assign({ fam:"tous", marque:"", q:"", sMax:null, pMin:0 }, v));
+  const t = $("#t-tout"); t.setAttribute("tabindex", "-1");
+  t.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion:reduce)").matches ? "auto" : "smooth", block:"start" }); t.focus({ preventScroll:true });
+}
+
+/* ---------- Comparaison de deux barres ---------- */
+let attente = null;
+const f1 = v => { const r = Math.round(v * 10) / 10; return nb(r, r % 1 && r < 100 ? 1 : 0); };
+function attendre(i){
+  attente = i; fermerFiche();
+  $("#attente-texte").innerHTML = `<strong>${esc(P[i].m)} ${esc(sousTitre(P[i]))}</strong> est en attente. Choisissez une deuxième barre.`;
+  $("#attente").hidden = false;
+}
+function finAttente(){ attente = null; $("#attente").hidden = true; }
+function ouvrirDuel(ia, ib){
+  const a = P[ia], b = P[ib], d = $("#fiche");
+  const tete = x => `<div><div class="duel-photo">${photo(x)}</div><b>${esc(x.m)}</b><span>${esc(sousTitre(x))}</span></div>`;
+  const ligne = (nom, va, vb, unite, dec) => { const max = Math.max(va ?? 0, vb ?? 0, 1), f = v => v == null ? "n.d." : (dec ? f1(v) : nb(v)) + unite;
+    return `<div class="duel-ligne"><h4>${nom}</h4><div class="duel-vals"><div><b>${f(va)}</b><i style="width:${va == null ? 0 : Math.max(1, va / max * 100)}%"></i></div><div><b>${f(vb)}</b><i style="width:${vb == null ? 0 : Math.max(1, vb / max * 100)}%"></i></div></div></div>`; };
+  const texte = (nom, va, vb) => `<div class="duel-ligne"><h4>${nom}</h4><div class="duel-vals"><div><b>${va}</b></div><div><b>${vb}</b></div></div></div>`;
+  let bilan = "";
+  if (a.valide && b.valide && a.s != null && b.s != null){
+    const dp = a.p - b.p, ds = a.s - b.s, na = esc(a.m), nB = esc(b.m), ecart = (v, mot) => Math.abs(v) < .05 ? `autant de ${mot}` : `${f1(Math.abs(v))} g de ${mot} de ${v > 0 ? "plus" : "moins"}`;
+    const memes = a.m === b.m, sujet = memes ? "la première barre" : na, objet = memes ? "la seconde" : nB;
+    bilan = `<p class="verdict">Pour 100 g, ${sujet} apporte <strong>${ecart(dp, "protéines")}</strong> et <strong>${ecart(ds, "sucres")}</strong> que ${objet}.</p>`;
+  }
+  d.innerHTML = `<div class="duel"><button type="button" class="fermer coin" aria-label="Fermer la comparaison"><svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><path d="M3 3l14 14M17 3L3 17" stroke="#000" stroke-width="3" stroke-linecap="round"/></svg></button>
+    <h3 class="sr" id="fiche-nom">${esc(a.m)} ${esc(sousTitre(a))} face à ${esc(b.m)} ${esc(sousTitre(b))}</h3>
+    <div class="duel-tete">${tete(a)}${tete(b)}</div>
+    <div class="fiche-corps" style="padding-top:4px">
+      ${ligne("Protéines pour 100 g", a.valide ? a.p : null, b.valide ? b.p : null, " g", true)}
+      ${ligne("Part des calories venant des protéines", a.valide ? a.part : null, b.valide ? b.part : null, " %", false)}
+      ${ligne("Sucres pour 100 g", a.s, b.s, " g", true)}
+      ${ligne("Matières grasses pour 100 g", a.f, b.f, " g", true)}
+      ${ligne("Calories pour 100 g", a.k, b.k, "", false)}
+      ${texte("Nutri-Score", a.ns ? a.ns.toUpperCase() : "Non noté", b.ns ? b.ns.toUpperCase() : "Non noté")}
+      ${texte("Ce que dit le pack", a.d ? "Parle de protéine" : "N'en parle pas", b.d ? "Parle de protéine" : "N'en parle pas")}
+      ${bilan}
+    </div></div>`;
+  if (typeof d.showModal === "function") { if (!d.open) d.showModal(); } else d.setAttribute("open", "");
+  d.scrollTop = 0;
+}
+
+/* ---------- Fiche produit ---------- */
+function ouvrirFiche(i){
+  const x = P[i], f = FAM[x.fam], d = $("#fiche");
+  const face = (nom, v, ref, unite) => { if (v == null || ref == null) return ""; const max = Math.max(v, ref, 1);
+    return `<div class="face-ligne"><span>${nom}</span><i style="width:${Math.max(1, v / max * 100)}%"></i><b>${nb(v, v < 10 ? 1 : 0)} ${unite}</b></div>
+            <div class="face-ligne"><span style="color:#44474D">Médiane du rayon</span><i class="rayon" style="width:${Math.max(1, ref / max * 100)}%"></i><b>${nb(ref, ref < 10 ? 1 : 0)} ${unite}</b></div>`; };
+  d.innerHTML = `
+    <div class="fiche-photo">${photo(x)}<button type="button" class="fermer" aria-label="Fermer la fiche"><svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><path d="M3 3l14 14M17 3L3 17" stroke="#000" stroke-width="3" stroke-linecap="round"/></svg></button></div><div class="rail"></div>
+    <div class="fiche-corps">
+      <p class="fiche-marque">${esc(x.m)}${esc(rattache(x.m, x.g))}</p>
+      <h3 class="fiche-nom" id="fiche-nom">${esc(x.n)}</h3>
+      <p class="fiche-meta">${x.q ? esc(x.q) + ". " : ""}Code-barres ${esc(x.c)}. ${x.rang === 1 ? "La barre la plus scannée." : x.rang + "<sup>e</sup> barre la plus scannée."}</p>
+      <dl class="fiche-faits">
+        <div class="fort"><dt>Protéines pour 100 g</dt><dd>${x.valide ? nb(x.p, 1) + " g" : "n.d."}</dd></div>
+        <div class="fort"><dt>Part des calories</dt><dd>${x.valide ? nb(x.part) + " %" : "n.d."}</dd></div>
+        <div><dt>Calories pour 100 g</dt><dd>${x.k != null ? nb(x.k) : "n.d."}</dd></div>
+        <div><dt>Sucres</dt><dd>${x.s != null ? nb(x.s) + " g" : "n.d."}</dd></div>
+        <div><dt>Matières grasses</dt><dd>${x.f != null ? nb(x.f) + " g" : "n.d."}</dd></div>
+        <div><dt>Nutri-Score, NOVA</dt><dd>${x.ns ? x.ns.toUpperCase() : "?"}, ${x.nova ?? "?"}</dd></div>
+      </dl>
+      <div class="face"><h4>Face au rayon</h4>${face("Protéines", x.valide ? x.p : null, MED.p, "g")}<div style="height:8px"></div>${face("Sucres", x.s, MED.s, "g")}</div>
+      <p class="verdict"><strong>${f.titre}</strong> ${f.texte}</p>
+      <button type="button" class="fiche-comparer" data-comparer="${x.i}">Comparer avec une autre barre</button>
+      <a class="fiche-lien" href="https://fr.openfoodfacts.org/produit/${encodeURIComponent(x.c)}" target="_blank" rel="noopener">Voir la fiche source sur Open Food Facts</a>
+    </div>`;
+  if (typeof d.showModal === "function") { if (!d.open) d.showModal(); } else d.setAttribute("open", "");
+  d.scrollTop = 0;
+}
+function fermerFiche(){ const d = $("#fiche"); if (d.open && d.close) d.close(); else d.removeAttribute("open"); }
+
+/* ---------- Méthode ---------- */
+function afficherMethode(){
+  const ex = Object.entries(META.exclus || {}).sort((a, b) => b[1] - a[1]), nEx = ex.reduce((s, e) => s + e[1], 0);
+  const plur = { "tablette ou moulage":"tablettes ou moulages", "glace":"glaces", "brioche":"brioches", "assortiment":"assortiments", "bouchée":"bouchées", "galette de riz":"galettes de riz", "fiche incomplète":"fiches incomplètes", "biscuit":"biscuits", "yaourt":"yaourts" };
+  const liste = ex.map(e => `${e[1]} ${e[1] > 1 ? (plur[e[0]] || e[0]) : e[0]}`).join(", ");
+  $("#methode").innerHTML = [
+    `Périmètre : la catégorie « barres chocolatées » d'Open Food Facts, produits vendus en France, les ${META.lus} fiches les plus scannées. ${N} sont retenues${nEx ? ` après avoir écarté ${nEx} fiches hors sujet ou inexploitables (${liste})` : ""}.`,
+    "Une référence correspond à un code-barres. Un produit vendu en plusieurs formats compte donc plusieurs fois, ce qui avantage les marques à large gamme.",
+    "Marques : chaque fiche est rattachée à la marque visible sur le pack. Le rattachement aux groupes (Ferrero, Mars Wrigley, Nestlé, Mondelez) est fait à la main.",
+    `Une barre « parle de protéine » si son nom, ses labels ou sa catégorie mentionnent la protéine.${(META.manuels || []).length ? ` ${META.manuels.length > 1 ? "Des barres ont été ajoutées" : "Une barre a été ajoutée"} à la main, d'après la photo du pack : ${META.manuels.map(esc).join(", ")}.` : ""}`,
+    "Part des calories : protéines (g) × 4 kcal, divisées par les calories pour 100 g. Les seuils de 12 % et 20 % viennent du règlement (CE) n° 1924/2006. Le calcul part des valeurs déclarées sur les fiches et ne remplace pas une vérification réglementaire.",
+    "L'outil décrit l'offre, pas le marché : la base ne contient ni ventes ni prix. Le nombre de scans reflète l'usage de l'application Open Food Facts, pas les volumes vendus.",
+    `Des bénévoles saisissent les fiches et les photos. Certaines sont incomplètes ou datées.${META.corriges ? ` ${META.corriges} valeur${META.corriges > 1 ? "s" : ""} de sucres manifestement fausse${META.corriges > 1 ? "s" : ""}, très loin des autres produits de la même marque, ${META.corriges > 1 ? "sont écartées" : "est écartée"}.` : ""} Chaque fiche renvoie vers sa source pour vérification.`
+  ].map(t => `<li>${t}</li>`).join("");
+}
+
+/* ---------- Lancement ---------- */
+afficherAffiche(); afficherConstats(); afficherOccupation(); afficherCompo(); afficherPodium(); afficherNuage(); initFiltres(); afficherGrille(); afficherMethode();
+
+document.addEventListener("click", e => {
+  if (e.target.closest(".fermer")) return fermerFiche();
+  const d = $("#fiche");
+  if (e.target === d) return fermerFiche();            // clic sur le fond
+  const c = e.target.closest("[data-comparer]"); if (c) return attendre(Number(c.dataset.comparer));
+  if (e.target.closest("#attente-annuler")) return finAttente();
+  const g = e.target.closest("[data-groupe]"); if (g) return allerExplorer({ marque:"groupe:" + g.dataset.groupe });
+  const mq = e.target.closest("[data-marque]"); if (mq) return allerExplorer({ marque:mq.dataset.marque });
+  const b = e.target.closest("[data-i]"); if (b) choisir(Number(b.dataset.i));
+});
+function choisir(i){
+  if (attente != null && attente !== i){ const a = attente; finAttente(); return ouvrirDuel(a, i); }
+  if (attente === i) finAttente();
+  ouvrirFiche(i);
+}
+document.addEventListener("keydown", e => { if ((e.key === "Enter" || e.key === " ") && e.target.matches && e.target.matches("circle.pt")) { e.preventDefault(); choisir(Number(e.target.dataset.i)); } });
+let minuteur; addEventListener("resize", () => { clearTimeout(minuteur); minuteur = setTimeout(afficherNuage, 150); });
+})();
+</script>
+</body>
+</html>

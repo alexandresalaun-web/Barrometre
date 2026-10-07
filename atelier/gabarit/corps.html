@@ -1,0 +1,128 @@
+<header class="barre">
+  <div class="bloc">
+    <button type="button" class="logo" data-vue="accueil" aria-label="Le Barromètre, accueil">Le <i>Barr</i>omètre</button>
+    <small id="barre-date"></small>
+    <nav class="nav" aria-label="Menu">
+      <button type="button" data-vue="accueil" id="n-accueil">Rayons</button>
+      <button type="button" data-vue="produit" id="n-produit">Produit</button>
+      <button type="button" data-vue="releve" id="n-releve">Relevé<span class="pastille" id="n-releve-nb" data-nb-releve hidden>0</span></button>
+      <button type="button" data-vue="methode" id="n-methode">Infos</button>
+      <button type="button" class="scan" data-scan><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M4 6v12M7.5 6v12M11 6v12M14 6v12M17.5 6v12M20 6v12" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/></svg>Scanner</button>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <!-- ================= Accueil ================= -->
+  <div class="vue bloc" id="v-accueil">
+    <div class="ouverture">
+      <p class="surtitre" id="date-base"></p>
+      <h1 id="t-accueil" tabindex="-1">Le relevé de rayon, en une minute</h1>
+      <p class="chapo">Qui occupe un rayon, ce que contiennent ses produits, ce que promettent les packs, où il reste de la place.</p>
+      <div class="zone-bascule" id="zone-bascule"></div>
+    </div>
+    <div id="zone-installer"></div>
+    <div class="entrees">
+      <div class="entree">
+        <h2>Lire un rayon</h2>
+        <p id="entree-rayon-note"></p>
+        <div class="champ">
+          <label class="sr" for="q-rayon">Nom du rayon</label>
+          <input type="search" id="q-rayon" placeholder="Yaourts, chips, barres protéinées…" autocomplete="off" enterkeyhint="search">
+          <button type="button" id="b-rayon">Ouvrir</button>
+        </div>
+        <div class="suggestions" id="s-rayon"></div>
+        <p class="etat" id="e-rayon" role="status"></p>
+      </div>
+      <div class="entree">
+        <h2>Situer un produit</h2>
+        <p>Scannez un concurrent en magasin, ou cherchez-le : sa position face à son rayon.</p>
+        <div class="rp" id="rp-accueil"></div>
+      </div>
+    </div>
+
+    <div class="segments" data-onglets role="tablist" aria-label="Explorer les rayons">
+      <button type="button" role="tab" data-onglet="une" aria-selected="true">À la une</button>
+      <button type="button" role="tab" data-onglet="comparer" aria-selected="false">Comparer les rayons</button>
+      <button type="button" role="tab" data-onglet="tous" aria-selected="false">Tous les rayons</button>
+    </div>
+
+    <div class="panneau" data-panneau="une">
+      <section aria-labelledby="t-vedettes">
+        <h2 id="t-vedettes">Rayons en vue</h2>
+        <p class="intro">Chaque rayon a pour enseigne le produit le plus scanné de ses premières marques.</p>
+        <div class="etagere"><div class="defile" id="vedettes" tabindex="0" role="group" aria-label="Rayons en vue"></div></div>
+      </section>
+      <section aria-labelledby="t-base">
+        <h2 id="t-base">Ce que couvre la base</h2>
+        <div class="chiffres" id="chiffres"></div>
+        <p class="note">Source : <a href="https://fr.openfoodfacts.org" target="_blank" rel="noopener">Open Food Facts</a>, base ouverte et collaborative. L'outil mesure une présence en références : ni ventes, ni prix, ni distribution. Le détail est dans <button type="button" class="lien" data-vue="methode">Infos</button>.</p>
+      </section>
+    </div>
+    <div class="panneau" data-panneau="comparer" hidden>
+      <section aria-labelledby="t-comparer">
+        <h2 id="t-comparer">Comparer les rayons</h2>
+        <p class="intro">Un indicateur, les rayons côte à côte. Touchez un rayon pour ouvrir sa fiche.</p>
+        <div class="reglages">
+          <label class="large">Indicateur<select id="c-indic"></select></label>
+          <label>Rayons<select id="c-champ">
+            <option value="vedettes">Rayons en vue</option>
+            <option value="grands">Tous les rayons de 500 références et plus</option>
+          </select></label>
+          <label>Ordre<select id="c-ordre"><option value="desc">Du plus haut au plus bas</option><option value="asc">Du plus bas au plus haut</option></select></label>
+        </div>
+        <div class="rangs" id="c-rangs"></div>
+        <p class="note" id="c-note"></p>
+      </section>
+    </div>
+    <div class="panneau" data-panneau="tous" hidden>
+      <section aria-labelledby="t-arbre">
+        <h2 id="t-arbre">Tous les rayons</h2>
+        <p class="intro" id="arbre-intro"></p>
+        <div class="arbre" id="arbre"></div>
+      </section>
+    </div>
+  </div>
+
+  <!-- ================= Fiche de rayon ================= -->
+  <div class="vue bloc" id="v-rayon" hidden></div>
+
+  <!-- ================= Fiche produit ================= -->
+  <div class="vue bloc" id="v-produit" hidden></div>
+
+  <!-- ================= Relevé ================= -->
+  <div class="vue bloc" id="v-releve" hidden></div>
+
+  <!-- ================= Infos ================= -->
+  <div class="vue bloc" id="v-methode" hidden>
+    <div class="tete">
+      <p class="surtitre">Méthode et limites</p>
+      <h1 id="t-methode" tabindex="-1">Ce que l'outil mesure, et ce qu'il ne mesure pas</h1>
+    </div>
+    <div id="methode-corps"></div>
+    <footer>
+      <p>Le Barromètre. Données <a href="https://fr.openfoodfacts.org" target="_blank" rel="noopener">Open Food Facts</a>, sous licence <a href="https://opendatacommons.org/licenses/odbl/1-0/" target="_blank" rel="noopener">Open Database License</a>. Photos des produits : contributeurs d'Open Food Facts, licence Creative Commons BY-SA.</p>
+      <p id="pied-date"></p>
+      <p><a href="etude.html">L'étude d'origine : le rayon barres chocolatées passé au scanner</a></p>
+    </footer>
+  </div>
+</main>
+
+<nav class="onglets" aria-label="Navigation">
+  <button type="button" data-vue="accueil"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="7" height="7" rx="1.5"/><rect x="14" y="4" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>Rayons</button>
+  <button type="button" data-vue="produit"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.6-3.6"/></svg>Produit</button>
+  <button type="button" class="scan" data-scan aria-label="Scanner un code-barres"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6v12M7.5 6v12M11 6v12M14 6v12M17.5 6v12M20 6v12"/></svg></button>
+  <button type="button" data-vue="releve"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 9h6M9 13h6M9 17h3"/></svg>Relevé<span class="pastille" data-nb-releve hidden>0</span></button>
+  <button type="button" data-vue="methode"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.6v.2"/></svg>Infos</button>
+</nav>
+
+<!-- ================= Scanner ================= -->
+<div class="scanner" id="scanner" hidden role="dialog" aria-modal="true" aria-labelledby="scan-titre">
+  <div class="scanner-tete"><b id="scan-titre">Scanner un code-barres</b><button type="button" id="scan-fermer">Fermer</button></div>
+  <div class="scanner-cadre"><video id="video" playsinline muted></video></div>
+  <div class="scanner-bas">
+    <p id="scan-etat" role="status"></p>
+    <label class="bouton" for="scan-photo">Prendre le code-barres en photo</label>
+    <input class="sr" type="file" id="scan-photo" accept="image/*" capture="environment">
+  </div>
+</div>
