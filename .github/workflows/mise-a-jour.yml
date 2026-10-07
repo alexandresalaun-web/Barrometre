@@ -1,0 +1,94 @@
+# Le Barromètre : mise à jour mensuelle des données.
+# Chaque mois, cette tâche relit l'export complet d'Open Food Facts, refabrique le site, le contrôle, et ne le publie
+# que si tous les contrôles passent. En cas d'échec, rien n'est publié : l'application en ligne reste telle qu'elle était.
+# Lancement à la main : onglet Actions, « Mise à jour mensuelle des données », bouton « Run workflow ».
+name: Mise à jour mensuelle des données
+
+on:
+  schedule:
+    - cron: "17 3 3 * *"        # le 3 de chaque mois, à 3 h 17 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write               # journal des mises à jour, mémoire des vignettes
+  pages: write                  # publication du site
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  mise-a-jour:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    environment:
+      name: github-pages
+      url: ${{ steps.publication.outputs.page_url }}
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Sources
+        uses: actions/checkout@v6
+        with:
+          sparse-checkout: |
+            atelier
+            etat
+
+      - name: Outils
+        run: |
+          python3 -m venv "$RUNNER_TEMP/venv"
+          "$RUNNER_TEMP/venv/bin/pip" install --quiet pillow orjson
+          echo "$RUNNER_TEMP/venv/bin" >> "$GITHUB_PATH"
+          cd atelier
+          npm install --no-save --no-audit --no-fund playwright
+          npx playwright install --with-deps chromium
+          node --version
+
+      - name: Vignettes déjà connues
+        run: |
+          mkdir -p atelier/work/photos
+          if gh release download memoire --pattern photos.tar --dir "$RUNNER_TEMP" 2>/dev/null; then
+            tar -xf "$RUNNER_TEMP/photos.tar" -C atelier/work
+            echo "$(ls atelier/work/photos | wc -l) vignettes reprises"
+          else
+            echo "Pas encore de mémoire : toutes les vignettes seront téléchargées (une vingtaine de minutes)."
+          fi
+
+      - name: Fabrication et contrôles
+        run: bash atelier/fabrique.sh etat/derniere.json
+
+      - name: Réglage de Pages
+        uses: actions/configure-pages@v5
+
+      - name: Envoi du site
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: atelier/site
+
+      - name: Publication
+        id: publication
+        uses: actions/deploy-pages@v4
+
+      - name: Journal
+        continue-on-error: true
+        run: |
+          cp atelier/work/bilan.json etat/derniere.json
+          python3 - <<'PY'
+          import json
+          m = json.load(open("etat/derniere.json", encoding="utf-8"))
+          n = lambda x: f"{x:,}".replace(",", " ")
+          open("etat/journal.md", "a", encoding="utf-8").write(f"| {m['collecte']} | {m['date']} | {n(m['gardes'])} | {n(m['actives'])} | {n(m['rayons'])} | {m['annee']} |\n")
+          PY
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add etat
+          git commit -m "Données mises à jour : base au $(python3 -c "import json; print(json.load(open('etat/derniere.json'))['date'])")"
+          git push || (git pull --rebase && git push)
+
+      - name: Mémoire des vignettes
+        continue-on-error: true
+        run: |
+          tar -cf "$RUNNER_TEMP/photos.tar" -C atelier/work photos
+          gh release view memoire > /dev/null 2>&1 || gh release create memoire --prerelease --title "Mémoire des vignettes" --notes "Fichier technique : les vignettes de produits déjà téléchargées, reprises par la mise à jour mensuelle pour ne pas les redemander à Open Food Facts."
+          gh release upload memoire "$RUNNER_TEMP/photos.tar" --clobber
